@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+   /* Estilo general de la ventana y paneles */
+    QMainWindow, QWidget#centralwidget {
+        background-color: #FCECC0;
+        color: #000000;
+    }
+
+    /* Barra de menús */
+    QMenuBar {
+        background-color: #FCECC0;
+        color: #000000;
+        border-bottom: 1px solid #673AB7;
+    }
+    QMenuBar::item:selected {
+        background-color: #673AB7;
+        color: #FFFFFF;
+    }
+
+	QLabel{
+		 background-color: #FCECC0;
+        color: #000000;
+	}
+
+    /* Barra de estado con fondo crema unificado */
+    QStatusBar {
+        background-color: #FCECC0;
+        color: #000000;
+        spacing: 0px; /* &lt;--- AÑADE ESTA LÍNEA */
+    }
+
+    /* Estilo genérico para botones que añadas en el futuro */
+    QPushButton {
+        background-color: #F63D03;
+        color: #FFFFFF;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+    }
+    QPushButton:hover {
+        background-color: #673AB7;
+    }
+    QPushButton:pressed {
+    	background-color: #000000;
+    }
+
+	QProgressBar {
+   		border: 1px solid #673AB7;       /* Color Secundario */
+       background-color: #FCECC0;      /* Color de Fondo Crema */
+       text-align: center;  							 /* Centra el porcentaje */    
+       border-radius: 3px;
+       font-weight: bold;
+       color: #000000;              					/* Texto del % en negro */
+   }
+   QProgressBar::chunk {
+       background-color: #F63D03;      /* Color Primario Naranja */
+   }</string>
+  </property>
+  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="barraEstado"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

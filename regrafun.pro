@@ -11,10 +11,17 @@ SOURCES += \
     src/mainwindow.cpp
 
 HEADERS += \
+    include/Config.h \
     include/mainwindow.h
 
 FORMS += \
-    ui/mainwindow.ui
+    forms/mainwindow.ui
+    
+# Añadido por mi 
+INCLUDEPATH += $$PWD/include
+
+# Vincular el sistema de recursos de Qt
+RESOURCES += recursos.qrc
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
