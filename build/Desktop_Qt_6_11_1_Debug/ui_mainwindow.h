@@ -10,10 +10,13 @@
 #define UI_MAINWINDOW_H
 
 #include <QtCore/QVariant>
+#include <QtGui/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QStatusBar>
+#include <QtWidgets/QToolBar>
 #include <QtWidgets/QWidget>
 
 QT_BEGIN_NAMESPACE
@@ -21,9 +24,15 @@ QT_BEGIN_NAMESPACE
 class Ui_MainWindow
 {
 public:
+    QAction *actionNueva;
+    QAction *actionAbrir;
+    QAction *actionGuardar;
+    QAction *actionSalir;
     QWidget *centralwidget;
     QMenuBar *menubar;
+    QMenu *menuArchivo;
     QStatusBar *barraEstado;
+    QToolBar *toolBar;
 
     void setupUi(QMainWindow *MainWindow)
     {
@@ -41,13 +50,13 @@ public:
 "    QMenuBar {\n"
 "        background-color: #FCECC0;\n"
 "        color: #000000;\n"
-"        border-bottom: 1px solid #673AB7;\n"
 "    }\n"
 "    QMenuBar::item:selected {\n"
 "        background-color: #673AB7;\n"
 "        color: #FFFFFF;\n"
 "    }\n"
 "\n"
+"	/* QLAbels*/\n"
 "	QLabel{\n"
 "		 background-color: #FCECC0;\n"
 "        color: #000000;\n"
@@ -56,18 +65,45 @@ public:
 "    /* Barra de estado con fondo crema unificado */\n"
 "    QStatusBar {\n"
 "        background-color: #FCECC0;\n"
-"        color: #000000;\n"
-"        spacing: 0px; /* <--- A\303\221ADE ESTA L\303\215NEA */\n"
+"        color: #673AB7;\n"
 "    }\n"
+"	\n"
+"	/* QToolBar*/\n"
+"	QToolBar{\n"
+"		background-color:#FCECC0;\n"
+"		color:#673AB7;\n"
+"	}\n"
+"\n"
+"	QToolBar:separator{\n"
+"		background-color:#FCECC0;\n"
+"	}\n"
+"\n"
+"/* Estado Hover: Efecto simulado de hundido (Sunken) al pasar el rat\303\263n */\n"
+"QToolBar QToolButton:hover {\n"
+"    background-color: #FCECC0; /* Un gris "
+                        "m\303\241s oscuro que el fondo para dar profundidad */\n"
+"    border-top: 1px solid #999999;     /* Sombra interna superior */\n"
+"    border-left: 1px solid #999999;    /* Sombra interna izquierda */\n"
+"    border-bottom: 1px solid #ffffff;  /* Brillo inferior */\n"
+"    border-right: 1px solid #ffffff;   /* Brillo derecho */\n"
+"}\n"
+"\n"
+"/* Estado Pressed: Hundido real y m\303\241s profundo al hacer clic */\n"
+"QToolBar QToolButton:pressed, QToolBar QToolButton:checked {\n"
+"    background-color: #b0b0b0; /* A\303\272n m\303\241s oscuro */\n"
+"    border-top: 2px solid #666666;\n"
+"    border-left: 2px solid #666666;\n"
+"    border-bottom: 1px solid #e0e0e0;\n"
+"    border-right: 1px solid #e0e0e0;\n"
+"    padding-top: 5px;  /* Desplaza ligeramente el texto/icono hacia abajo */\n"
+"    padding-left: 5px; /* Desplaza ligeramente hacia la derecha para simular presi\303\263n */\n"
+"}\n"
 "\n"
 "    /* Estilo gen\303\251rico para botones que a\303\261adas en el futuro */\n"
 "    QPushButton {\n"
-"        background-color: #F63D03;\n"
+"        backg"
+                        "round-color: #F63D03;\n"
 "        color: #FFFFFF;\n"
-"        border: none;\n"
-"        padding: 6px 12px;\n"
-"      "
-                        "  border-radius: 4px;\n"
 "    }\n"
 "    QPushButton:hover {\n"
 "        background-color: #673AB7;\n"
@@ -77,26 +113,63 @@ public:
 "    }\n"
 "\n"
 "	QProgressBar {\n"
-"   		border: 1px solid #673AB7;       /* Color Secundario */\n"
 "       background-color: #FCECC0;      /* Color de Fondo Crema */\n"
+"   		border: 1px solid #673AB7;       /* Color Secundario */\n"
 "       text-align: center;  							 /* Centra el porcentaje */    \n"
-"       border-radius: 3px;\n"
 "       font-weight: bold;\n"
 "       color: #000000;              					/* Texto del % en negro */\n"
 "   }\n"
 "   QProgressBar::chunk {\n"
 "       background-color: #F63D03;      /* Color Primario Naranja */\n"
 "   }"));
+        MainWindow->setIconSize(QSize(24, 24));
+        actionNueva = new QAction(MainWindow);
+        actionNueva->setObjectName("actionNueva");
+        QIcon icon;
+        icon.addFile(QString::fromUtf8(":/recursos/nuevo1.jpeg"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        actionNueva->setIcon(icon);
+        actionAbrir = new QAction(MainWindow);
+        actionAbrir->setObjectName("actionAbrir");
+        QIcon icon1;
+        icon1.addFile(QString::fromUtf8(":/recursos/abrir.jpeg"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        actionAbrir->setIcon(icon1);
+        actionGuardar = new QAction(MainWindow);
+        actionGuardar->setObjectName("actionGuardar");
+        QIcon icon2;
+        icon2.addFile(QString::fromUtf8(":/recursos/guardar1.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        actionGuardar->setIcon(icon2);
+        actionSalir = new QAction(MainWindow);
+        actionSalir->setObjectName("actionSalir");
+        QIcon icon3;
+        icon3.addFile(QString::fromUtf8(":/recursos/salir.jpeg"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        actionSalir->setIcon(icon3);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName("centralwidget");
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
         menubar->setObjectName("menubar");
         menubar->setGeometry(QRect(0, 0, 800, 23));
+        menuArchivo = new QMenu(menubar);
+        menuArchivo->setObjectName("menuArchivo");
         MainWindow->setMenuBar(menubar);
         barraEstado = new QStatusBar(MainWindow);
         barraEstado->setObjectName("barraEstado");
         MainWindow->setStatusBar(barraEstado);
+        toolBar = new QToolBar(MainWindow);
+        toolBar->setObjectName("toolBar");
+        MainWindow->addToolBar(Qt::ToolBarArea::TopToolBarArea, toolBar);
+
+        menubar->addAction(menuArchivo->menuAction());
+        menuArchivo->addAction(actionNueva);
+        menuArchivo->addAction(actionAbrir);
+        menuArchivo->addAction(actionGuardar);
+        menuArchivo->addAction(actionSalir);
+        toolBar->addAction(actionSalir);
+        toolBar->addSeparator();
+        toolBar->addSeparator();
+        toolBar->addAction(actionNueva);
+        toolBar->addAction(actionAbrir);
+        toolBar->addAction(actionGuardar);
 
         retranslateUi(MainWindow);
 
@@ -106,6 +179,12 @@ public:
     void retranslateUi(QMainWindow *MainWindow)
     {
         MainWindow->setWindowTitle(QCoreApplication::translate("MainWindow", "MainWindow", nullptr));
+        actionNueva->setText(QCoreApplication::translate("MainWindow", "Nueva Funci\303\263n", nullptr));
+        actionAbrir->setText(QCoreApplication::translate("MainWindow", "Abrir funci\303\263n", nullptr));
+        actionGuardar->setText(QCoreApplication::translate("MainWindow", "Guardar funci\303\263n", nullptr));
+        actionSalir->setText(QCoreApplication::translate("MainWindow", "Salir", nullptr));
+        menuArchivo->setTitle(QCoreApplication::translate("MainWindow", "Archivo", nullptr));
+        toolBar->setWindowTitle(QCoreApplication::translate("MainWindow", "toolBar", nullptr));
     } // retranslateUi
 
 };

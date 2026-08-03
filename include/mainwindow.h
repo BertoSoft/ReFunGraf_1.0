@@ -4,6 +4,10 @@
 #include <QMainWindow>
 #include <QLabel>
 
+#include <QLineEdit>
+#include <QDoubleSpinBox>
+#include <QPushButton>
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -20,7 +24,13 @@ public:
 
 
 protected:
+    void salir();
+    void nuevaFuncion();
+    void abrirFuncion();
+    void guardarFuncion();
 
+private slots:
+    void on_actionSalir_triggered();
 
 private:
     void initUi();
@@ -36,6 +46,19 @@ private:
     QLabel *lblReloj{nullptr};
 
     QTimer *timerReloj{nullptr};
+
+
+
+
+
+
+    // NUEVOS COMPONENTES DEL FORMULARIO DE DATOS
+    QLineEdit       *txtFuncion;
+    QDoubleSpinBox  *spinXMin;
+    QDoubleSpinBox  *spinXMax;
+    QDoubleSpinBox  *spinPaso;
+    QPushButton     *btnGraficar;
+    QWidget         *widgetGrafica; // Contenedor del 80% derecho
 
 private:
     Ui::MainWindow *ui;

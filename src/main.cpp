@@ -13,6 +13,9 @@ int main(int argc, char *argv[]){
         qputenv("QT_QPA_PLATFORM", "xcb");
     #endif
 
+    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+
     QApplication a(argc, argv);
     QApplication::setWindowIcon(QIcon(":/recursos/icono.jpeg"));
     QApplication::setApplicationName(Config::APP_NAME);

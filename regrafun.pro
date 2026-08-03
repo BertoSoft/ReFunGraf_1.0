@@ -22,6 +22,7 @@ INCLUDEPATH += $$PWD/include
 
 # Vincular el sistema de recursos de Qt
 RESOURCES += recursos.qrc
+QT += svg
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

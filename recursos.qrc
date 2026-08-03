@@ -1,7 +1,10 @@
-<!DOCTYPE RCC><RCC version="1.0">
-<qresource prefix="/">
-    <file>recursos/icono.jpeg</file>
-    <file>recursos/logo.png</file>
-</qresource>
+<RCC>
+    <qresource prefix="/">
+        <file>recursos/icono.jpeg</file>
+        <file>recursos/logo.png</file>
+        <file>recursos/abrir.jpeg</file>
+        <file>recursos/guardar1.png</file>
+        <file>recursos/nuevo1.jpeg</file>
+        <file>recursos/salir.jpeg</file>
+    </qresource>
 </RCC>
-

@@ -25,13 +25,13 @@
     QMenuBar {
         background-color: #FCECC0;
         color: #000000;
-        border-bottom: 1px solid #673AB7;
     }
     QMenuBar::item:selected {
         background-color: #673AB7;
         color: #FFFFFF;
     }
 
+	/* QLAbels*/
 	QLabel{
 		 background-color: #FCECC0;
         color: #000000;
@@ -40,17 +40,43 @@
     /* Barra de estado con fondo crema unificado */
     QStatusBar {
         background-color: #FCECC0;
-        color: #000000;
-        spacing: 0px; /* &lt;--- AÑADE ESTA LÍNEA */
+        color: #673AB7;
     }
+	
+	/* QToolBar*/
+	QToolBar{
+		background-color:#FCECC0;
+		color:#673AB7;
+	}
+
+	QToolBar:separator{
+		background-color:#FCECC0;
+	}
+
+/* Estado Hover: Efecto simulado de hundido (Sunken) al pasar el ratón */
+QToolBar QToolButton:hover {
+    background-color: #FCECC0; /* Un gris más oscuro que el fondo para dar profundidad */
+    border-top: 1px solid #999999;     /* Sombra interna superior */
+    border-left: 1px solid #999999;    /* Sombra interna izquierda */
+    border-bottom: 1px solid #ffffff;  /* Brillo inferior */
+    border-right: 1px solid #ffffff;   /* Brillo derecho */
+}
+
+/* Estado Pressed: Hundido real y más profundo al hacer clic */
+QToolBar QToolButton:pressed, QToolBar QToolButton:checked {
+    background-color: #b0b0b0; /* Aún más oscuro */
+    border-top: 2px solid #666666;
+    border-left: 2px solid #666666;
+    border-bottom: 1px solid #e0e0e0;
+    border-right: 1px solid #e0e0e0;
+    padding-top: 5px;  /* Desplaza ligeramente el texto/icono hacia abajo */
+    padding-left: 5px; /* Desplaza ligeramente hacia la derecha para simular presión */
+}
 
     /* Estilo genérico para botones que añadas en el futuro */
     QPushButton {
         background-color: #F63D03;
         color: #FFFFFF;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 4px;
     }
     QPushButton:hover {
         background-color: #673AB7;
@@ -60,16 +86,21 @@
     }
 
 	QProgressBar {
-   		border: 1px solid #673AB7;       /* Color Secundario */
        background-color: #FCECC0;      /* Color de Fondo Crema */
+   		border: 1px solid #673AB7;       /* Color Secundario */
        text-align: center;  							 /* Centra el porcentaje */    
-       border-radius: 3px;
        font-weight: bold;
        color: #000000;              					/* Texto del % en negro */
    }
    QProgressBar::chunk {
        background-color: #F63D03;      /* Color Primario Naranja */
    }</string>
+  </property>
+  <property name="iconSize">
+   <size>
+    <width>24</width>
+    <height>24</height>
+   </size>
   </property>
   <widget class="QWidget" name="centralwidget"/>
   <widget class="QMenuBar" name="menubar">
@@ -81,9 +112,74 @@
      <height>23</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuArchivo">
+    <property name="title">
+     <string>Archivo</string>
+    </property>
+    <addaction name="actionNueva"/>
+    <addaction name="actionAbrir"/>
+    <addaction name="actionGuardar"/>
+    <addaction name="actionSalir"/>
+   </widget>
+   <addaction name="menuArchivo"/>
   </widget>
   <widget class="QStatusBar" name="barraEstado"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionSalir"/>
+   <addaction name="separator"/>
+   <addaction name="separator"/>
+   <addaction name="actionNueva"/>
+   <addaction name="actionAbrir"/>
+   <addaction name="actionGuardar"/>
+  </widget>
+  <action name="actionNueva">
+   <property name="icon">
+    <iconset resource="../recursos.qrc">
+     <normaloff>:/recursos/nuevo1.jpeg</normaloff>:/recursos/nuevo1.jpeg</iconset>
+   </property>
+   <property name="text">
+    <string>Nueva Función</string>
+   </property>
+  </action>
+  <action name="actionAbrir">
+   <property name="icon">
+    <iconset resource="../recursos.qrc">
+     <normaloff>:/recursos/abrir.jpeg</normaloff>:/recursos/abrir.jpeg</iconset>
+   </property>
+   <property name="text">
+    <string>Abrir función</string>
+   </property>
+  </action>
+  <action name="actionGuardar">
+   <property name="icon">
+    <iconset resource="../recursos.qrc">
+     <normaloff>:/recursos/guardar1.png</normaloff>:/recursos/guardar1.png</iconset>
+   </property>
+   <property name="text">
+    <string>Guardar función</string>
+   </property>
+  </action>
+  <action name="actionSalir">
+   <property name="icon">
+    <iconset resource="../recursos.qrc">
+     <normaloff>:/recursos/salir.jpeg</normaloff>:/recursos/salir.jpeg</iconset>
+   </property>
+   <property name="text">
+    <string>Salir</string>
+   </property>
+  </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../recursos.qrc"/>
+ </resources>
  <connections/>
 </ui>
