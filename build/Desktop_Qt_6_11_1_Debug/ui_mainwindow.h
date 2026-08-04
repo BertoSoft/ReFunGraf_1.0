@@ -13,7 +13,6 @@
 #include <QtGui/QAction>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QDoubleSpinBox>
-#include <QtWidgets/QFrame>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
@@ -53,7 +52,7 @@ public:
     QSpacerItem *verticalSpacer;
     QVBoxLayout *verticalLayout_2;
     QLabel *lblTextoFuncion;
-    QFrame *fraGrafica;
+    QLabel *lblGraf;
     QMenuBar *menubar;
     QMenu *menuArchivo;
     QStatusBar *barraEstado;
@@ -260,12 +259,14 @@ public:
 
         verticalLayout_2->addWidget(lblTextoFuncion);
 
-        fraGrafica = new QFrame(centralwidget);
-        fraGrafica->setObjectName("fraGrafica");
-        fraGrafica->setFrameShape(QFrame::Shape::WinPanel);
-        fraGrafica->setFrameShadow(QFrame::Shadow::Sunken);
+        lblGraf = new QLabel(centralwidget);
+        lblGraf->setObjectName("lblGraf");
+        lblGraf->setStyleSheet(QString::fromUtf8("background-color: #000000;\n"
+"color:#FFFFFF;"));
+        lblGraf->setFrameShape(QFrame::Shape::WinPanel);
+        lblGraf->setFrameShadow(QFrame::Shadow::Sunken);
 
-        verticalLayout_2->addWidget(fraGrafica);
+        verticalLayout_2->addWidget(lblGraf);
 
         verticalLayout_2->setStretch(1, 1);
 
@@ -320,6 +321,7 @@ public:
         label->setText(QCoreApplication::translate("MainWindow", "Funcion:", nullptr));
         btnGraf->setText(QCoreApplication::translate("MainWindow", "Dibujar Gr\303\241fica", nullptr));
         lblTextoFuncion->setText(QCoreApplication::translate("MainWindow", "Representaci\303\263n gr\303\241fica de la funci\303\263n ", nullptr));
+        lblGraf->setText(QString());
         menuArchivo->setTitle(QCoreApplication::translate("MainWindow", "Archivo", nullptr));
         toolBar->setWindowTitle(QCoreApplication::translate("MainWindow", "toolBar", nullptr));
     } // retranslateUi

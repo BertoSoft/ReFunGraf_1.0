@@ -4,7 +4,6 @@
 #include <QString>
 #include <QColor>
 
-#endif // CONFIG_H
 
 namespace Config {
 
@@ -21,4 +20,14 @@ namespace Config {
     inline QColor foreColor         = QColor("#000000");
     inline QColor backColor         = QColor("#FCECC0");
 
+    //
+    // Estructuras
+    //
+    struct datosGraf{
+        double x;
+        double y;
+    };
 }
+
+#endif // CONFIG_H
+

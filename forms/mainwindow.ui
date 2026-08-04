@@ -234,12 +234,19 @@ QToolBar QToolButton:pressed, QToolBar QToolButton:checked {
          </widget>
         </item>
         <item>
-         <widget class="QFrame" name="fraGrafica">
+         <widget class="QLabel" name="lblGraf">
+          <property name="styleSheet">
+           <string notr="true">background-color: #000000;
+color:#FFFFFF;</string>
+          </property>
           <property name="frameShape">
            <enum>QFrame::Shape::WinPanel</enum>
           </property>
           <property name="frameShadow">
            <enum>QFrame::Shadow::Sunken</enum>
+          </property>
+          <property name="text">
+           <string/>
           </property>
          </widget>
         </item>

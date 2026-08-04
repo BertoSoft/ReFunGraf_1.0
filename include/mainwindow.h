@@ -1,12 +1,15 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+
 #include <QMainWindow>
 #include <QLabel>
 
 #include <QLineEdit>
 #include <QDoubleSpinBox>
 #include <QPushButton>
+
+#include "Config.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -31,6 +34,8 @@ private slots:
 
     void on_actionNueva_triggered();
 
+    void on_btnGraf_clicked();
+
 private:
     void initUi();
     void initBarraEstado();
@@ -45,7 +50,8 @@ private:
     void nuevaFuncion();
     void abrirFuncion();
     void guardarFuncion();
-    void procesaFuncion();
+    QVector<Config::datosGraf> procesaFuncion();
+    void dibujaFuncion(QVector<Config::datosGraf> vectorDatosGraf);
 
     //
     // Punteros encapsulados protegidos de manipulaciones externas

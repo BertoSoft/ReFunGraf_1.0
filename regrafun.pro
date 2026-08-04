@@ -8,11 +8,13 @@ CONFIG += c++17
 
 SOURCES += \
     src/main.cpp \
-    src/mainwindow.cpp
+    src/mainwindow.cpp \
+    src/tinyexpr.c
 
 HEADERS += \
     include/Config.h \
-    include/mainwindow.h
+    include/mainwindow.h \
+    include/tinyexpr.h
 
 FORMS += \
     forms/mainwindow.ui
