@@ -261,6 +261,11 @@ public:
 
         lblGraf = new QLabel(centralwidget);
         lblGraf->setObjectName("lblGraf");
+        QSizePolicy sizePolicy(QSizePolicy::Policy::Ignored, QSizePolicy::Policy::Ignored);
+        sizePolicy.setHorizontalStretch(0);
+        sizePolicy.setVerticalStretch(0);
+        sizePolicy.setHeightForWidth(lblGraf->sizePolicy().hasHeightForWidth());
+        lblGraf->setSizePolicy(sizePolicy);
         lblGraf->setStyleSheet(QString::fromUtf8("background-color: #000000;\n"
 "color:#FFFFFF;"));
         lblGraf->setFrameShape(QFrame::Shape::WinPanel);

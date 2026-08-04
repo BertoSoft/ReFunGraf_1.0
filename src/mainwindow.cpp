@@ -172,6 +172,7 @@ void MainWindow::on_actionNueva_triggered(){
 void MainWindow::on_btnGraf_clicked(){
     QVector<Config::datosGraf> datos = procesaFuncion();
     dibujaFuncion(datos);
+    ui->lblGraf->setFocus();
 }
 
 
@@ -367,6 +368,10 @@ void MainWindow::dibujaFuncion(QVector<Config::datosGraf> datos){
         alto = 400;
     }
 
+    //Borramos la lblGraf
+    ui->lblGraf->clear();
+
+
     // 2. Crear el lienzo en memoria (Pixmap) del tamaño exacto del QLabel
     QPixmap lienzo(ancho, alto);
     lienzo.fill(Qt::black); // Fondo negro para la línea de la función
@@ -389,13 +394,14 @@ void MainWindow::dibujaFuncion(QVector<Config::datosGraf> datos){
     double rangoY = (maxY - minY == 0) ? 1.0 : (maxY - minY);
 
     // 4. Configurar las propiedades de tu lápiz de dibujo
-    QPen lapiz(QColor("#F63D03"), 2); // Naranja corporativo de tu app
+    QPen lapiz(QColor("#F63D03"), 1); // Naranja corporativo de tu app
     painter.setPen(lapiz);
 
     // 5. Recorrer el vector y enlazar los puntos calculados
     bool esPrimerPunto = true;
     QPointF puntoAnterior;
 
+    //recorremos elvector datos desde el primero el ultimo
     for (const auto &p : datos) {
         // Conversión matemática a las coordenadas del plano de píxeles del QLabel
         // En pantallas el (0,0) está arriba a la izquierda. Invertimos Y restando del 'alto' total

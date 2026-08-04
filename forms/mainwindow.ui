@@ -235,6 +235,12 @@ QToolBar QToolButton:pressed, QToolBar QToolButton:checked {
         </item>
         <item>
          <widget class="QLabel" name="lblGraf">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="styleSheet">
            <string notr="true">background-color: #000000;
 color:#FFFFFF;</string>
