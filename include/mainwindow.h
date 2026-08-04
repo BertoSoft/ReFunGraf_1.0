@@ -24,19 +24,28 @@ public:
 
 
 protected:
-    void salir();
-    void nuevaFuncion();
-    void abrirFuncion();
-    void guardarFuncion();
+    bool eventFilter(QObject *obj, QEvent *ev) override;
 
 private slots:
     void on_actionSalir_triggered();
+
+    void on_actionNueva_triggered();
 
 private:
     void initUi();
     void initBarraEstado();
     void refrescaReloj();
     void initReloj();
+    void initDsb();
+    void activaControles();
+    void desactivaControles();
+    void limpiaControles();
+
+    void salir();
+    void nuevaFuncion();
+    void abrirFuncion();
+    void guardarFuncion();
+    void procesaFuncion();
 
     //
     // Punteros encapsulados protegidos de manipulaciones externas
@@ -46,19 +55,6 @@ private:
     QLabel *lblReloj{nullptr};
 
     QTimer *timerReloj{nullptr};
-
-
-
-
-
-
-    // NUEVOS COMPONENTES DEL FORMULARIO DE DATOS
-    QLineEdit       *txtFuncion;
-    QDoubleSpinBox  *spinXMin;
-    QDoubleSpinBox  *spinXMax;
-    QDoubleSpinBox  *spinPaso;
-    QPushButton     *btnGraficar;
-    QWidget         *widgetGrafica; // Contenedor del 80% derecho
 
 private:
     Ui::MainWindow *ui;
