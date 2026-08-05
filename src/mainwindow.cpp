@@ -5,15 +5,13 @@
 
 #include <QTimer>
 #include <QDateTime>
-#include <QLayout>
-
-#include <QFormLayout>
-#include <QSplitter>
+#include <QLabel>
 #include <QLineEdit>
 #include <QDoubleSpinBox>
 #include <QKeyEvent>
 #include <QMessageBox>
 #include <QPainter>
+#include <QPixmap>
 
 // Ciclo de vida de la app, constructor y destructor
 MainWindow::MainWindow(QWidget *parent)
@@ -23,15 +21,16 @@ MainWindow::MainWindow(QWidget *parent)
 
     setWindowTitle(Config::APP_NAME);
     setWindowIcon(QIcon(":/recursos/icono.jpeg"));
-    setWindowFilePath(Config::APP_NAME);
 
-    qApp->installEventFilter(this);
+    // 2. Inicializar componentes de la UI (Crea lblTexto, lblFecha, etc.)
+    initUi();
+
+    // 3. Instalar filtros de eventos de forma segura (QUITANDO qApp para evitar duplicados)
+    this->installEventFilter(this);
     ui->etFuncion->installEventFilter(this);
     ui->dsbInferior->installEventFilter(this);
     ui->dsbSuperior->installEventFilter(this);
     ui->dsbPaso->installEventFilter(this);
-
-    initUi();
 
 }
 
@@ -171,7 +170,8 @@ void MainWindow::on_actionNueva_triggered(){
 
 void MainWindow::on_btnGraf_clicked(){
     QVector<Config::datosGraf> datos = procesaFuncion();
-    dibujaFuncion(datos);
+    QPixmap miPixMap = dibujaEjes(datos);
+    dibujaFuncion(datos, miPixMap);
     ui->lblGraf->setFocus();
 }
 
@@ -182,103 +182,86 @@ void MainWindow::on_btnGraf_clicked(){
 //
 bool MainWindow::eventFilter(QObject *obj, QEvent *ev){
 
-    // 1. PROTECCIÓN PRINCIPAL CONTRA PUNTEROS NULOS (Satisface a Clang al 100%)
-    if(!ui ||
-        !ui->dsbInferior ||
-        ! ui->dsbSuperior ||
-        !ui->dsbPaso ||
-        !ui->etFuncion
-        ){
+    // 1. PROTECCIÓN PRINCIPAL CONTRA PUNTEROS NULOS (Clang al 100%)
+    if (!ui || !ui->dsbInferior || !ui->dsbSuperior || !ui->dsbPaso || !ui->etFuncion || !lblTexto) {
         return QMainWindow::eventFilter(obj, ev);
     }
 
-    QWidget *w = qobject_cast<QWidget*>(obj);
-
-    //
-    // KeyPress
-    //
-    if(ev->type() == QEvent::KeyPress){
+    // ==========================================
+    // SECCIÓN: KeyPress (Pulsaciones de Teclas)
+    // ==========================================
+    if (ev->type() == QEvent::KeyPress) {
         QKeyEvent *teclaEv = static_cast<QKeyEvent*>(ev);
+        int key = teclaEv->key();
+        bool isEnter = (key == Qt::Key_Return || key == Qt::Key_Enter);
 
-        //ventanaOrigen == MainWIndow Tecla == ESC
-        if(w && w->window() == this){
-            if(teclaEv->key() == Qt::Key_Escape){
+        // Tecla ESC: Salir
+        if (key == Qt::Key_Escape) {
+            QWidget *w = qobject_cast<QWidget*>(obj);
+            if (w && w->window() == this) {
                 salir();
                 return true;
             }
         }
 
-        // obj == etFuncion Tecla == Return
-        if(obj == ui->etFuncion){
-            if(teclaEv->key() == Qt::Key_Return || teclaEv->key() == Qt::Key_Enter){
+        // Navegación con Enter
+        if (isEnter) {
+            if (obj == ui->etFuncion) {
                 ui->btnGraf->click();
                 return true;
             }
-        }
-
-        // obj == dsbInferior Tecla == Return
-        if(obj == ui->dsbInferior){
-            if(teclaEv->key() == Qt::Key_Return || teclaEv->key() == Qt::Key_Enter){
+            if (obj == ui->dsbInferior) {
                 ui->dsbSuperior->setFocus();
+                return true; // CORREGIDO: Evita propagación errática
             }
-        }
-
-        // obj == dsbSuperior Tecla == Return
-        if(obj == ui->dsbSuperior){
-            if(teclaEv->key() == Qt::Key_Return || teclaEv->key() == Qt::Key_Enter){
+            if (obj == ui->dsbSuperior) {
                 ui->dsbPaso->setFocus();
+                return true; // CORREGIDO: Evita propagación errática
             }
-        }
-
-        // obj == dsbPaso Tecla == Return
-        if(obj == ui->dsbPaso){
-            if(teclaEv->key() == Qt::Key_Return || teclaEv->key() == Qt::Key_Enter){
-               ui->etFuncion->setFocus();
+            if (obj == ui->dsbPaso) {
+                ui->etFuncion->setFocus();
+                return true; // CORREGIDO: Evita propagación errática
             }
         }
     }
 
-    //
-    //  Recibe el foco
-    //
-    if(ev->type() == QEvent::FocusIn){
-        if(obj == ui->dsbInferior){
-            QTimer::singleShot(0, ui->dsbInferior, &QDoubleSpinBox::selectAll);
+    // ==========================================
+    // SECCIÓN: FocusIn (Recibe el Foco)
+    // ==========================================
+    if (ev->type() == QEvent::FocusIn) {
+        if (obj == ui->dsbInferior) {
+            QTimer::singleShot(0, ui->dsbInferior, [this]() { ui->dsbInferior->selectAll(); });
             lblTexto->setText("Introduce el límite inferior de la función...");
         }
-        if(obj == ui->dsbSuperior){
-            QTimer::singleShot(0, ui->dsbSuperior, &QDoubleSpinBox::selectAll);
+        else if (obj == ui->dsbSuperior) {
+            QTimer::singleShot(0, ui->dsbSuperior, [this]() { ui->dsbSuperior->selectAll(); });
             lblTexto->setText("Introduce el límite superior de la función...");
         }
-        if(obj == ui->dsbPaso){
-            QTimer::singleShot(0, ui->dsbPaso, &QDoubleSpinBox::selectAll);
+        else if (obj == ui->dsbPaso) {
+            QTimer::singleShot(0, ui->dsbPaso, [this]() { ui->dsbPaso->selectAll(); });
             lblTexto->setText("Introduce el intervalo de paso de la función...");
         }
-        if(obj == ui->etFuncion){
-            QTimer::singleShot(0, ui->etFuncion, &QLineEdit::selectAll);
+        else if (obj == ui->etFuncion) {
+            QTimer::singleShot(0, ui->etFuncion, [this]() { ui->etFuncion->selectAll(); });
             lblTexto->setText("Define la función matemática...");
         }
     }
 
-    //
-    // Pierde el Foco
-    //
-    if(ev->type() == QEvent::FocusOut){
-        if(obj == ui->dsbInferior){
-            QLineEdit *le = ui->dsbInferior->findChild<QLineEdit*>();
-            QTimer::singleShot(0, le, &QLineEdit::deselect);
+    // ==========================================
+    // SECCIÓN: FocusOut (Pierde el Foco)
+    // ==========================================
+    if (ev->type() == QEvent::FocusOut) {
+        QDoubleSpinBox *spinBox = qobject_cast<QDoubleSpinBox*>(obj);
+        if (spinBox) {
+            QLineEdit *le = spinBox->findChild<QLineEdit*>();
+            if (le) { // CORREGIDO: Protección crítica contra puntero nulo (Anti-Crash)
+                QTimer::singleShot(0, le, [le]() { le->deselect(); });
             }
-        if(obj == ui->dsbSuperior){
-            QLineEdit *le = ui->dsbSuperior->findChild<QLineEdit*>();
-            QTimer::singleShot(0, le, &QLineEdit::deselect);
-        }
-        if(obj == ui->dsbPaso){
-            QLineEdit *le = ui->dsbPaso->findChild<QLineEdit*>();
-            QTimer::singleShot(0, le, &QLineEdit::deselect);
         }
     }
 
     return QMainWindow::eventFilter(obj, ev);
+
 }
 
 //
@@ -355,7 +338,7 @@ QVector<Config::datosGraf> MainWindow::procesaFuncion(){
     return vectorDatosGraf;
 }
 
-void MainWindow::dibujaFuncion(QVector<Config::datosGraf> datos){
+void MainWindow::dibujaFuncion(QVector<Config::datosGraf> datos, QPixmap lienzo){
     if(datos.isEmpty()) return;
 
     // 1. Obtener las dimensiones actuales del QLabel en píxeles de pantalla
@@ -370,11 +353,6 @@ void MainWindow::dibujaFuncion(QVector<Config::datosGraf> datos){
 
     //Borramos la lblGraf
     ui->lblGraf->clear();
-
-
-    // 2. Crear el lienzo en memoria (Pixmap) del tamaño exacto del QLabel
-    QPixmap lienzo(ancho, alto);
-    lienzo.fill(Qt::black); // Fondo negro para la línea de la función
 
     QPainter painter(&lienzo);
     painter.setRenderHint(QPainter::Antialiasing); // Activa suavizado de bordes
@@ -424,6 +402,104 @@ void MainWindow::dibujaFuncion(QVector<Config::datosGraf> datos){
     // 6. Asignar el Pixmap pintado al QLabel de la interfaz de usuario
     ui->lblGraf->setPixmap(lienzo);
 
+}
+
+QPixmap MainWindow::dibujaEjes(QVector<Config::datosGraf> datos){
+    QPixmap miPixMap;
+
+    if (!ui->lblGraf) return miPixMap;
+
+    // 1. Obtener las dimensiones actuales del contenedor del gráfico
+    int ancho = ui->lblGraf->width();
+    int alto = ui->lblGraf->height();
+
+    // 2. Crear el lienzo (Pixmap) y rellenar el fondo de blanco
+    QPixmap pixmap(ancho, alto);
+    pixmap.fill(Qt::white);
+
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing); // Bordes suaves
+    // 3. Definir los límites del mundo matemático (Rango de la vista)
+    // Usamos los valores introducidos por el usuario
+    double minX = ui->dsbInferior->value();
+    double maxX = ui->dsbSuperior->value();
+
+    // Para el eje Y, puedes calcular dinámicamente los min/max de los 'datos'
+    // o fijar un rango por defecto (ej. de -10 a 10) para esta vista:
+    double minY = -10.0;
+    double maxY = 10.0;
+
+    // Lamdas de conversión: Transforma coordenadas matemáticas (x,y) a píxeles de pantalla (px, py)
+    auto mapearX = [=](double x) {
+        return static_cast<int>((x - minX) / (maxX - minX) * ancho);
+    };
+    auto mapearY = [=](double y) {
+        return static_cast<int>((maxY - y) / (maxY - minY) * alto); // Invertido porque Y crece hacia abajo en pantalla
+    };
+
+    // 4. DIBUJAR LA REJILLA DE FONDO (Opcional, ayuda a la escala)
+    QPen penRejilla(QColor(230, 230, 230), 1, Qt::DotLine);
+    painter.setPen(penRejilla);
+
+    // Líneas verticales de la rejilla
+    double pasoEscalaX = (maxX - minX) / 10.0; // 10 divisiones
+    for (double x = minX; x <= maxX; x += pasoEscalaX) {
+        int px = mapearX(x);
+        painter.drawLine(px, 0, px, alto);
+    }
+    // Líneas horizontales de la rejilla
+    double pasoEscalaY = (maxY - minY) / 10.0;
+    for (double y = minY; y <= maxY; y += pasoEscalaY) {
+        int py = mapearY(y);
+        painter.drawLine(0, py, ancho, py);
+    }
+
+    // 5. DIBUJAR LOS EJES CARTESIANOS (Negros y más gruesos)
+    QPen penEjes(Qt::black, 2, Qt::SolidLine);
+    painter.setPen(penEjes);
+
+    int origenX = mapearX(0.0);
+    int origenY = mapearY(0.0);
+
+    // Dibujar Eje X (horizontal) si está dentro de la pantalla
+    if (origenY >= 0 && origenY <= alto) {
+        painter.drawLine(0, origenY, ancho, origenY);
+    } else {
+        origenY = alto - 20; // Si el 0 matemático está fuera, fijar eje abajo para las etiquetas
+    }
+
+    // Dibujar Eje Y (vertical) si está dentro de la pantalla
+    if (origenX >= 0 && origenX <= ancho) {
+        painter.drawLine(origenX, 0, origenX, alto);
+    } else {
+        origenX = 20; // Si el 0 matemático está fuera, fijar eje a la izquierda para las etiquetas
+    }
+
+    // 6. DIBUJAR LAS MARCAS DE LA ESCALA Y TEXTOS
+    QPen penMarcas(Qt::darkGray, 1, Qt::SolidLine);
+    painter.setPen(penMarcas);
+    painter.setFont(QFont("Arial", 8));
+
+    // Números en el eje X
+    for (double x = minX; x <= maxX; x += pasoEscalaX) {
+        if (qFuzzyIsNull(x)) continue; // Saltarse el origen (0,0) para que no se solape
+        int px = mapearX(x);
+        painter.drawLine(px, origenY - 4, px, origenY + 4); // Pequeña marca vertical
+        painter.drawText(px - 15, origenY + 18, QString::number(x, 'g', 3));
+    }
+
+    // Números en el eje Y
+    for (double y = minY; y <= maxY; y += pasoEscalaY) {
+        if (qFuzzyIsNull(y)) continue;
+        int py = mapearY(y);
+        painter.drawLine(origenX - 4, py, origenX + 4, py); // Pequeña marca horizontal
+        painter.drawText(origenX + 8, py + 4, QString::number(y, 'g', 3));
+    }
+
+    // Finalizar el dibujo y cargarlo en el QLabel de la UI
+    painter.end();
+    ui->lblGraf->setPixmap(pixmap);
+    return pixmap;
 }
 
 

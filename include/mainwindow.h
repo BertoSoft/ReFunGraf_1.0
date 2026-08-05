@@ -51,7 +51,8 @@ private:
     void abrirFuncion();
     void guardarFuncion();
     QVector<Config::datosGraf> procesaFuncion();
-    void dibujaFuncion(QVector<Config::datosGraf> vectorDatosGraf);
+    void dibujaFuncion(QVector<Config::datosGraf> vectorDatosGraf, QPixmap lienzo);
+    QPixmap dibujaEjes(QVector<Config::datosGraf> vectorDatosGraf);
 
     //
     // Punteros encapsulados protegidos de manipulaciones externas
