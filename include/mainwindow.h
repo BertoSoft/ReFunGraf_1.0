@@ -48,18 +48,14 @@ private:
     void nuevaFuncion();
     void abrirFuncion();
     void guardarFuncion();
-    QVector<Config::datosGraf> procesaFuncion();
-    void dibujaFuncion(QVector<Config::datosGraf> vectorDatosGraf, QPixmap lienzo);
-    QPixmap dibujaEjes(QVector<Config::datosGraf> vectorDatosGraf);
-
-    QList<QPointF> procesaFuncion_bis();
-    QPixmap dibujaEjes_bis(QList<QPointF> datos);
-    void dibujaFuncion_bis(QList<QPointF> datos, QPixmap lienzo);
+    QList<QPointF> procesaFuncion();
+    QPixmap dibujaEjes(QList<QPointF> datos);
+    void dibujaFuncion(QList<QPointF> datos, QPixmap lienzo);
 
 
 
-    double maxFuncion(QVector<Config::datosGraf> vectorDatosGraf);
-    double minFuncion(QVector<Config::datosGraf> vectorDatosGraf);
+    double maxFuncion(QList<QPointF> datos);
+    double minFuncion(QList<QPointF> datos);
 
     //
     // Punteros encapsulados protegidos de manipulaciones externas

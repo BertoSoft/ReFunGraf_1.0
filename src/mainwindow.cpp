@@ -177,7 +177,7 @@ void MainWindow::on_btnGraf_clicked(){
     //Borramos la lblGraf
     ui->lblGraf->clear();
 
-    QVector<Config::datosGraf> datos = procesaFuncion();
+    QList<QPointF> datos = procesaFuncion();
     if(!datos.isEmpty()){
         QPixmap miPixMap = dibujaEjes(datos);
         dibujaFuncion(datos, miPixMap);
@@ -292,274 +292,42 @@ void MainWindow::guardarFuncion(){
 
 }
 
-QVector<Config::datosGraf> MainWindow::procesaFuncion(){
-    QVector<Config::datosGraf> vectorDatosGraf;
-
-    // Si etFuncion esta en blanco
-    if(ui->etFuncion->text().trimmed().isEmpty()){
-        QMessageBox::critical(
-            this,
-            Config::APP_NAME,
-            "Debes especificar una funcion matemática..."
-            );
-        ui->etFuncion->setFocus();
-        return vectorDatosGraf;
-    }
-
-    QString strFuncion = ui->etFuncion->text().trimmed();
-    double xMin = ui->dsbInferior->value();
-    double xMax = ui->dsbSuperior->value();
-    double paso = ui->dsbPaso->value();
-
-    //Si existe . lo cambiamos por ,
-    strFuncion.replace('.', ',');
-    //
-    // Libreria externa tinyExpr
-    //
-    // Configurar la variable que el parser va a buscar en el string (en este caso 'x')
-    double x_actual;
-    te_variable vars[] = {{"x", &x_actual}};
-
-    // Compilar la expresión matemática introducida por el usuario
-    int error;
-    te_expr* expr = te_compile(strFuncion.toStdString().c_str(), vars, 1, &error);
-
-    if (!expr) {
-        QMessageBox::critical(this, Config::APP_NAME, "Error de sintaxis en la función matemática.");
-        return vectorDatosGraf;
-    }
-
-    double x = xMin;
-    while (x < xMax + (paso / 2.0)) {
-        x_actual = x;       // Actualiza el valor de la variable vinculada al parser
-        double y = te_eval(expr); // Evalúa la ecuación automáticamente (ej: "sin(x) + 2")
-
-        Config::datosGraf punto;
-        punto.x = x;
-        punto.y = y;
-        vectorDatosGraf.append(punto);
-
-        x += paso;
-    }
-
-    te_free(expr); // Liberar la memoria del parser
-
-    // ... enviar vectorDatosGraf a tu lienzo de dibujo ...
-    return vectorDatosGraf;
-}
-
-QPixmap MainWindow::dibujaEjes(QVector<Config::datosGraf> datos){
-    QPixmap miPixMap;
-
-    if (!ui->lblGraf) return miPixMap;
-
-    // 1. Obtener las dimensiones actuales del contenedor del gráfico
-    int ancho = ui->lblGraf->width();
-    int alto = ui->lblGraf->height();
-
-    // 2. Crear el lienzo (Pixmap) y rellenar el fondo de Negro
-    QPixmap pixmap(ancho, alto);
-    pixmap.fill(Qt::black);
-
-    QPainter painter(&pixmap);
-    painter.setRenderHint(QPainter::Antialiasing); // Bordes suaves
-    // 3. Definir los límites del mundo matemático (Rango de la vista)
-    // Usamos los valores introducidos por el usuario
-    double minX = ui->dsbInferior->value();
-    double maxX = ui->dsbSuperior->value();
-
-    // Para el eje Y, puedes calcular dinámicamente los min/max de los 'datos'
-    // o fijar un rango por defecto (ej. de -10 a 10) para esta vista:
-
-    double minY = minFuncion(datos);
-    double maxY = maxFuncion(datos);
-
-    // 4. Validar y corregir si el rango colapsó (minY == maxY)
-    if (qFuzzyCompare(minY, maxY)) {
-        // Si la función es constante (ej. y = 5), forzamos un rango visible de 4 a 6
-        minY = -1.0;
-        maxY = 1.0;
-    }
-
-    // Lamdas de conversión: Transforma coordenadas matemáticas (x,y) a píxeles de pantalla (px, py)
-    auto mapearX = [=](double x) {
-        return static_cast<int>((x - minX) / (maxX - minX) * ancho);
-    };
-    auto mapearY = [=](double y) {
-        return static_cast<int>((maxY - y) / (maxY - minY) * alto); // Invertido porque Y crece hacia abajo en pantalla
-    };
-
-    // 5. DIBUJAR LA REJILLA DE FONDO (Opcional, ayuda a la escala)
-    QPen penRejilla(QColor(230, 230, 230), 1, Qt::DotLine);
-    painter.setPen(penRejilla);
-
-    // Líneas verticales de la rejilla
-    double pasoEscalaX = (maxX - minX) / 10.0; // 10 divisiones
-    for (double x = minX; x <= maxX; x += pasoEscalaX) {
-        int px = mapearX(x);
-        painter.drawLine(px, 0, px, alto);
-    }
-    // Líneas horizontales de la rejilla
-    double pasoEscalaY = (maxY - minY) / 10.0;
-    for (double y = minY; y <= maxY; y += pasoEscalaY) {
-        int py = mapearY(y);
-        painter.drawLine(0, py, ancho, py);
-    }
-
-    // 6. DIBUJAR LOS EJES CARTESIANOS (Negros y más gruesos)
-    QPen penEjes(Qt::white, 2, Qt::SolidLine);
-    painter.setPen(penEjes);
-
-    int origenX = mapearX(0.0);
-    int origenY = mapearY(0.0);
-
-    // Dibujar Eje X (horizontal) si está dentro de la pantalla
-    if (origenY >= 0 && origenY <= alto) {
-        painter.drawLine(0, origenY, ancho, origenY);
-    } else {
-        origenY = alto - 20; // Si el 0 matemático está fuera, fijar eje abajo para las etiquetas
-    }
-
-    // Dibujar Eje Y (vertical) si está dentro de la pantalla
-    if (origenX >= 0 && origenX <= ancho) {
-        painter.drawLine(origenX, 0, origenX, alto);
-    } else {
-        origenX = 20; // Si el 0 matemático está fuera, fijar eje a la izquierda para las etiquetas
-    }
-
-    // 7. DIBUJAR LAS MARCAS DE LA ESCALA Y TEXTOS
-    QPen penMarcas(Qt::gray, 1, Qt::SolidLine);
-    painter.setPen(penMarcas);
-    painter.setFont(QFont("Arial", 8));
-
-    // Números en el eje X
-    for (double x = minX; x <= maxX; x += pasoEscalaX) {
-        if (qFuzzyIsNull(x)) continue; // Saltarse el origen (0,0) para que no se solape
-        int px = mapearX(x);
-        painter.drawLine(px, origenY - 4, px, origenY + 4); // Pequeña marca vertical
-        painter.drawText(px - 15, origenY + 18, QString::number(x, 'g', 3));
-    }
-
-    // Números en el eje Y
-    for (double y = minY; y <= maxY; y += pasoEscalaY) {
-        if (qFuzzyIsNull(y)) continue;
-        int py = mapearY(y);
-        painter.drawLine(origenX - 4, py, origenX + 4, py); // Pequeña marca horizontal
-        painter.drawText(origenX + 8, py + 4, QString::number(y, 'g', 3));
-    }
-
-    // Finalizar el dibujo y cargarlo en el QLabel de la UI
-    painter.end();
-    ui->lblGraf->setPixmap(pixmap);
-    return pixmap;
-}
-
-void MainWindow::dibujaFuncion(QVector<Config::datosGraf> datos, QPixmap lienzo){
-    if(datos.isEmpty()) return;
-
-    // 1. Obtener las dimensiones actuales del QLabel en píxeles de pantalla
-    int ancho   = ui->lblGraf->width();
-    int alto    = ui->lblGraf->height();
-
-    // Control de seguridad por si el widget aún no está renderizado
-    if (ancho <= 0 || alto <= 0) {
-        ancho = 600;
-        alto = 400;
-    }
-
-    QPainter painter(&lienzo);
-    painter.setRenderHint(QPainter::Antialiasing); // Activa suavizado de bordes
-
-    // 3. Encontrar mínimos y máximos matemáticos para escalar el dibujo
-    double minX = datos.first().x, maxX = datos.first().x;
-    double minY = datos.first().y, maxY = datos.first().y;
-
-    for (const auto &p : datos) {
-        if (p.x < minX) minX = p.x;
-        if (p.x > maxX) maxX = p.x;
-        if (p.y < minY) minY = p.y;
-        if (p.y > maxY) maxY = p.y;
-    }
-
-    //Validar y corregir si el rango colapsó (minY == maxY)
-    if (qFuzzyCompare(minY, maxY)) {
-        // Si la función es constante (ej. y = 5), forzamos un rango visible de 4 a 6
-        minY = -1.0;
-        maxY = 1.0;
-    }
-
-    double rangoX = (maxX - minX == 0) ? 1.0 : (maxX - minX);
-    double rangoY = (maxY - minY == 0) ? 1.0 : (maxY - minY);
-
-    // 4. Configurar las propiedades de tu lápiz de dibujo
-    QPen lapiz(QColor("#F63D03"), 1); // Naranja corporativo de tu app
-    painter.setPen(lapiz);
-
-    // 5. Recorrer el vector y enlazar los puntos calculados
-    bool esPrimerPunto = true;
-    QPointF puntoAnterior;
-
-    //recorremos elvector datos desde el primero el ultimo
-    for (const auto &p : datos) {
-        // Conversión matemática a las coordenadas del plano de píxeles del QLabel
-        // En pantallas el (0,0) está arriba a la izquierda. Invertimos Y restando del 'alto' total
-        double pixelX = ((p.x - minX) / rangoX) * ancho;
-        double pixelY = alto - (((p.y - minY) / rangoY) * alto);
-
-        QPointF puntoActual(pixelX, pixelY);
-
-        if (esPrimerPunto) {
-            esPrimerPunto = false;
-        } else {
-            // Une el punto anterior con el actual mediante un tramo de recta
-            painter.drawLine(puntoAnterior, puntoActual);
-        }
-        puntoAnterior = puntoActual;
-    }
-
-    painter.end(); // Finalizar las operaciones sobre el lienzo de memoria
-
-    // 6. Asignar el Pixmap pintado al QLabel de la interfaz de usuario
-    ui->lblGraf->setPixmap(lienzo);
-
-}
-
-double MainWindow::maxFuncion(QVector<Config::datosGraf> datos){
-    double datoMax;
+double MainWindow::maxFuncion(QList<QPointF> datos){
+    double dMax;
 
     if(datos.isEmpty()){
-        return datoMax;
+        return dMax;
     }
 
-    datoMax = datos.at(0).y;
+    dMax = datos.first().y();
     for(const auto &p:datos){
-        if(p.y > datoMax){
-            datoMax = p.y;
+        if( p.y() > dMax){
+            dMax = p.y();
         }
     }
 
-    return datoMax;
+    return dMax;
 }
 
-double MainWindow::minFuncion(QVector<Config::datosGraf> datos){
-    double datoMin;
+double MainWindow::minFuncion(QList<QPointF> datos){
+    double dMin;
 
     if(datos.isEmpty()){
-        return datoMin;
+        return dMin;
     }
 
-    datoMin = datos.at(0).y;
+    dMin = datos.first().y();
     for(const auto &p:datos){
-        if(p.y < datoMin){
-            datoMin = p.y;
+        if(p.y() < dMin){
+            dMin = p.y();
         }
     }
 
-    return datoMin;
+    return dMin;
 }
 
 
-QList<QPointF> MainWindow::procesaFuncion_bis(){
+QList<QPointF> MainWindow::procesaFuncion(){
     QList<QPointF> datos;
 
     if(ui->etFuncion->text().trimmed().isEmpty()){
@@ -575,8 +343,183 @@ QList<QPointF> MainWindow::procesaFuncion_bis(){
     QString strFuncion = ui->etFuncion->text().trimmed();
     strFuncion.replace('.', ',');
     double xMax = ui->dsbSuperior->value();
-    double xMin =
+    double xMin = ui->dsbInferior->value();
+    double paso = ui->dsbPaso->value();
+
+    strFuncion.replace('.', ',');
+
+    //
+    // Libreria externa tinyExpr, Configurar la variable que el parser va a buscar en el string (en este caso 'x')
+    //
+    double x_actual;
+    te_variable vars[] = {{"x", &x_actual}};
+
+    // Compilar la expresión matemática introducida por el usuario
+    int error;
+    te_expr* expr = te_compile(strFuncion.toStdString().c_str(), vars, 1, &error);
+
+    if (!expr) {
+        QMessageBox::critical(this, Config::APP_NAME, "Error de sintaxis en la función matemática.");
+        return datos;
+    }
+
+    double x = xMin;
+    while (x <= xMax + (paso / 2.0)) {
+        x_actual = x;       // Actualiza el valor de la variable vinculada al parser
+        double y = te_eval(expr); // Evalúa la ecuación automáticamente
+
+        datos.append(QPointF(x, y));
+
+
+        x +=paso;
+    }
+    te_free(expr); // Liberar la memoria del parser
 
     return datos;
+}
+
+QPixmap MainWindow::dibujaEjes(QList<QPointF> datos){
+    QPixmap miPixmap;
+
+    if(!ui->lblGraf) return miPixmap;
+
+    int ancho = ui->lblGraf->width();
+    int alto = ui->lblGraf->height();
+
+    miPixmap = QPixmap(ancho, alto);
+    miPixmap.fill(Qt::black);
+
+    QPainter painter(&miPixmap);
+
+    double xMax = ui->dsbSuperior->value();
+    double xMin = ui->dsbInferior->value();
+    double yMax = maxFuncion(datos);
+    double yMin = minFuncion(datos);
+
+    // si ymin == yMax, tenemos que colocar un rango
+    if(yMin == yMax){
+        yMax ++;
+        yMin --;
+    }
+
+    auto mapearX = [=] (double x){
+        return static_cast<int>((x - xMin) / (xMax - xMin) * ancho);
+    };
+
+    auto mapearY = [=] (double y){
+        return static_cast<int>((yMax - y) / (yMax - yMin) * alto);
+    };
+
+    //Dibujar la rejilla de fondo
+    QPen penRejilla(Config::colorSecundario, 1, Qt::DotLine);
+    painter.setPen(penRejilla);
+
+    //Lineas verticales
+    double pasoRejillaX = (xMax -xMin)/10;
+    for(double x = xMin; x <= xMax; x+= pasoRejillaX){
+        int px = mapearX(x);
+        painter.drawLine(px, 0, px, alto);
+    }
+    // Lineas horizontales
+    double pasoRejillaY = (yMax - yMin) / 10;
+    for(double y = yMin; y <= yMax; y += pasoRejillaY){
+        int py = mapearY(y);
+        painter.drawLine(0, py, ancho, py);
+    }
+
+    // Dibujar los ejes
+    QPen penEjes(Qt::white, 2, Qt::SolidLine);
+    painter.setPen(penEjes);
+
+    int origenX = mapearX(0);
+    int origenY = mapearY(0);
+
+    // Eje x
+    if(origenY >0 && origenY <= alto){
+        painter.drawLine(0, origenY, ancho, origenY);
+    }
+    else{
+        origenY = alto - 20;
+    }
+
+    //Eje y
+    if(origenX > 0 && origenX <= ancho){
+        painter.drawLine(origenX , 0, origenX, alto);
+    }
+    else{
+        origenX = ancho - 20;
+    }
+
+    // Dibujar las marcas de la escala y los textos
+    QPen penMarcas(Qt::yellow, 1, Qt::SolidLine);
+    painter.setPen(penMarcas);
+    painter.setFont(QFont("Arial", 8));
+
+    //Eje x
+    for(double x = xMin; x <= xMax; x += pasoRejillaX){
+        if(qFuzzyIsNull(x))continue;
+        int px = mapearX(x);
+        painter.drawLine(px , origenY - 10, px, origenY + 10);
+        painter.drawText(px - 25, origenY + 18,  QString::number(x, 'g', 3));
+    }
+
+    //Eje y
+    for(double y = yMin; y <= yMax; y += pasoRejillaY){
+        if(qFuzzyIsNull(y))continue;
+        int py = mapearY(y);
+        painter.drawLine(origenX - 10, py, origenX + 10, py);
+        painter.drawText(origenX + 8, py + 16, QString::number(y, 'g', 3));
+    }
+
+
+    // Finalizar el dibujo y cargarlo en el QLabel de la UI
+    painter.end();
+    ui->lblGraf->setPixmap(miPixmap);
+
+    return miPixmap;
+}
+
+void MainWindow::dibujaFuncion(QList<QPointF> datos, QPixmap miPixmap){
+    if(datos.isEmpty())return;
+
+    int ancho = ui->lblGraf->width();
+    int alto = ui->lblGraf->height();
+
+    if(ancho <= 0 || alto <= 0){
+        ancho = 800;
+        alto = 600;
+    }
+
+    QPainter painter(&miPixmap);
+    painter.setRenderHint(QPainter::Antialiasing); // Activa suavizado de bordes
+
+    // Maximos y minimos
+    double xMin = datos.first().x();
+    double xMax = datos.last().x();
+    double yMin = minFuncion(datos);
+    double yMax = maxFuncion(datos);
+
+    if(qFuzzyCompare(yMin, yMax)){
+        yMin --;
+        yMax ++;
+    }
+
+    double rangoX = (qFuzzyCompare(xMax, xMin)) ? 1.0 : (xMax - xMin);
+    double rangoY = (qFuzzyCompare(yMax, yMin)) ? 1.0 : (yMax - yMin);
+
+    QPen penPuntos(Config::colorPrimario, 1);
+    painter.setPen(penPuntos);
+
+    for(const auto &p: datos){
+        double pixelX = ((p.x() - xMin) / rangoX) * ancho;
+        double pixelY = alto - (((p.y() - yMin) / rangoY) * alto);
+
+        painter.drawPoint(pixelX, pixelY);
+    }
+
+    painter.end(); // Finalizar las operaciones sobre el lienzo de memoria
+
+    // 6. Asignar el Pixmap pintado al QLabel de la interfaz de usuario
+    ui->lblGraf->setPixmap(miPixmap);
 }
 
