@@ -31,9 +31,7 @@ protected:
 
 private slots:
     void on_actionSalir_triggered();
-
     void on_actionNueva_triggered();
-
     void on_btnGraf_clicked();
 
 private:
@@ -53,6 +51,15 @@ private:
     QVector<Config::datosGraf> procesaFuncion();
     void dibujaFuncion(QVector<Config::datosGraf> vectorDatosGraf, QPixmap lienzo);
     QPixmap dibujaEjes(QVector<Config::datosGraf> vectorDatosGraf);
+
+    QList<QPointF> procesaFuncion_bis();
+    QPixmap dibujaEjes_bis(QList<QPointF> datos);
+    void dibujaFuncion_bis(QList<QPointF> datos, QPixmap lienzo);
+
+
+
+    double maxFuncion(QVector<Config::datosGraf> vectorDatosGraf);
+    double minFuncion(QVector<Config::datosGraf> vectorDatosGraf);
 
     //
     // Punteros encapsulados protegidos de manipulaciones externas
