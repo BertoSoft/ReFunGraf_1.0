@@ -20,6 +20,7 @@
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPushButton>
+#include <QtWidgets/QRadioButton>
 #include <QtWidgets/QSpacerItem>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QToolBar>
@@ -36,9 +37,10 @@ public:
     QAction *actionGuardar;
     QAction *actionSalir;
     QWidget *centralwidget;
+    QHBoxLayout *horizontalLayout_5;
+    QHBoxLayout *horizontalLayout_4;
+    QVBoxLayout *verticalLayout_4;
     QVBoxLayout *verticalLayout_3;
-    QHBoxLayout *horizontalLayout;
-    QVBoxLayout *verticalLayout;
     QLabel *label_2;
     QDoubleSpinBox *dsbInferior;
     QLabel *label_3;
@@ -47,6 +49,17 @@ public:
     QDoubleSpinBox *dsbPaso;
     QLabel *label;
     QLineEdit *etFuncion;
+    QSpacerItem *verticalSpacer_3;
+    QVBoxLayout *verticalLayout;
+    QHBoxLayout *horizontalLayout;
+    QRadioButton *chkEjes;
+    QSpacerItem *horizontalSpacer;
+    QHBoxLayout *horizontalLayout_2;
+    QRadioButton *chkEscala;
+    QSpacerItem *horizontalSpacer_2;
+    QHBoxLayout *horizontalLayout_3;
+    QRadioButton *chkRejilla;
+    QSpacerItem *horizontalSpacer_3;
     QSpacerItem *verticalSpacer_2;
     QPushButton *btnGraf;
     QSpacerItem *verticalSpacer;
@@ -174,52 +187,54 @@ public:
         actionSalir->setIcon(icon3);
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName("centralwidget");
-        verticalLayout_3 = new QVBoxLayout(centralwidget);
+        horizontalLayout_5 = new QHBoxLayout(centralwidget);
+        horizontalLayout_5->setObjectName("horizontalLayout_5");
+        horizontalLayout_4 = new QHBoxLayout();
+        horizontalLayout_4->setObjectName("horizontalLayout_4");
+        verticalLayout_4 = new QVBoxLayout();
+        verticalLayout_4->setObjectName("verticalLayout_4");
+        verticalLayout_3 = new QVBoxLayout();
         verticalLayout_3->setObjectName("verticalLayout_3");
-        horizontalLayout = new QHBoxLayout();
-        horizontalLayout->setObjectName("horizontalLayout");
-        verticalLayout = new QVBoxLayout();
-        verticalLayout->setObjectName("verticalLayout");
         label_2 = new QLabel(centralwidget);
         label_2->setObjectName("label_2");
 
-        verticalLayout->addWidget(label_2);
+        verticalLayout_3->addWidget(label_2);
 
         dsbInferior = new QDoubleSpinBox(centralwidget);
         dsbInferior->setObjectName("dsbInferior");
         dsbInferior->setStyleSheet(QString::fromUtf8(" background-color: #FCECC0;\n"
 "        color: #F63D03;"));
 
-        verticalLayout->addWidget(dsbInferior);
+        verticalLayout_3->addWidget(dsbInferior);
 
         label_3 = new QLabel(centralwidget);
         label_3->setObjectName("label_3");
 
-        verticalLayout->addWidget(label_3);
+        verticalLayout_3->addWidget(label_3);
 
         dsbSuperior = new QDoubleSpinBox(centralwidget);
         dsbSuperior->setObjectName("dsbSuperior");
         dsbSuperior->setStyleSheet(QString::fromUtf8(" background-color: #FCECC0;\n"
 "        color: #F63D03;"));
 
-        verticalLayout->addWidget(dsbSuperior);
+        verticalLayout_3->addWidget(dsbSuperior);
 
         label_4 = new QLabel(centralwidget);
         label_4->setObjectName("label_4");
 
-        verticalLayout->addWidget(label_4);
+        verticalLayout_3->addWidget(label_4);
 
         dsbPaso = new QDoubleSpinBox(centralwidget);
         dsbPaso->setObjectName("dsbPaso");
         dsbPaso->setStyleSheet(QString::fromUtf8(" 	background-color: #FCECC0;\n"
 "    color: #F63D03;"));
 
-        verticalLayout->addWidget(dsbPaso);
+        verticalLayout_3->addWidget(dsbPaso);
 
         label = new QLabel(centralwidget);
         label->setObjectName("label");
 
-        verticalLayout->addWidget(label);
+        verticalLayout_3->addWidget(label);
 
         etFuncion = new QLineEdit(centralwidget);
         etFuncion->setObjectName("etFuncion");
@@ -229,25 +244,108 @@ public:
         etFuncion->setStyleSheet(QString::fromUtf8(" 	background-color: #FCECC0;\n"
 "   	color: #F63D03;"));
 
-        verticalLayout->addWidget(etFuncion);
+        verticalLayout_3->addWidget(etFuncion);
+
+
+        verticalLayout_4->addLayout(verticalLayout_3);
+
+        verticalSpacer_3 = new QSpacerItem(20, 40, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+
+        verticalLayout_4->addItem(verticalSpacer_3);
+
+        verticalLayout = new QVBoxLayout();
+        verticalLayout->setObjectName("verticalLayout");
+        horizontalLayout = new QHBoxLayout();
+        horizontalLayout->setObjectName("horizontalLayout");
+        chkEjes = new QRadioButton(centralwidget);
+        chkEjes->setObjectName("chkEjes");
+        chkEjes->setLayoutDirection(Qt::LayoutDirection::RightToLeft);
+        chkEjes->setStyleSheet(QString::fromUtf8("background-color: #FCECC0;\n"
+"color:#000000;\n"
+""));
+        chkEjes->setChecked(true);
+        chkEjes->setAutoExclusive(false);
+
+        horizontalLayout->addWidget(chkEjes);
+
+        horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        horizontalLayout->addItem(horizontalSpacer);
+
+        horizontalLayout->setStretch(0, 1);
+        horizontalLayout->setStretch(1, 1);
+
+        verticalLayout->addLayout(horizontalLayout);
+
+        horizontalLayout_2 = new QHBoxLayout();
+        horizontalLayout_2->setObjectName("horizontalLayout_2");
+        chkEscala = new QRadioButton(centralwidget);
+        chkEscala->setObjectName("chkEscala");
+        chkEscala->setLayoutDirection(Qt::LayoutDirection::RightToLeft);
+        chkEscala->setStyleSheet(QString::fromUtf8("background-color: #FCECC0;\n"
+"color:#000000;\n"
+""));
+        chkEscala->setChecked(true);
+        chkEscala->setAutoExclusive(false);
+
+        horizontalLayout_2->addWidget(chkEscala);
+
+        horizontalSpacer_2 = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        horizontalLayout_2->addItem(horizontalSpacer_2);
+
+        horizontalLayout_2->setStretch(0, 1);
+        horizontalLayout_2->setStretch(1, 1);
+
+        verticalLayout->addLayout(horizontalLayout_2);
+
+        horizontalLayout_3 = new QHBoxLayout();
+        horizontalLayout_3->setObjectName("horizontalLayout_3");
+        chkRejilla = new QRadioButton(centralwidget);
+        chkRejilla->setObjectName("chkRejilla");
+        chkRejilla->setLayoutDirection(Qt::LayoutDirection::RightToLeft);
+        chkRejilla->setStyleSheet(QString::fromUtf8("background-color: #FCECC0;\n"
+"color:#000000;\n"
+""));
+        chkRejilla->setChecked(true);
+        chkRejilla->setAutoExclusive(false);
+
+        horizontalLayout_3->addWidget(chkRejilla);
+
+        horizontalSpacer_3 = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        horizontalLayout_3->addItem(horizontalSpacer_3);
+
+        horizontalLayout_3->setStretch(0, 1);
+        horizontalLayout_3->setStretch(1, 1);
+
+        verticalLayout->addLayout(horizontalLayout_3);
+
+
+        verticalLayout_4->addLayout(verticalLayout);
 
         verticalSpacer_2 = new QSpacerItem(20, 20, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
 
-        verticalLayout->addItem(verticalSpacer_2);
+        verticalLayout_4->addItem(verticalSpacer_2);
 
         btnGraf = new QPushButton(centralwidget);
         btnGraf->setObjectName("btnGraf");
         btnGraf->setMinimumSize(QSize(0, 35));
 
-        verticalLayout->addWidget(btnGraf);
+        verticalLayout_4->addWidget(btnGraf);
 
         verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
 
-        verticalLayout->addItem(verticalSpacer);
+        verticalLayout_4->addItem(verticalSpacer);
 
-        verticalLayout->setStretch(10, 20);
+        verticalLayout_4->setStretch(0, 1);
+        verticalLayout_4->setStretch(1, 1);
+        verticalLayout_4->setStretch(2, 1);
+        verticalLayout_4->setStretch(3, 1);
+        verticalLayout_4->setStretch(4, 1);
+        verticalLayout_4->setStretch(5, 20);
 
-        horizontalLayout->addLayout(verticalLayout);
+        horizontalLayout_4->addLayout(verticalLayout_4);
 
         verticalLayout_2 = new QVBoxLayout();
         verticalLayout_2->setObjectName("verticalLayout_2");
@@ -256,6 +354,7 @@ public:
         QFont font1;
         font1.setPointSize(14);
         lblTextoFuncion->setFont(font1);
+        lblTextoFuncion->setAlignment(Qt::AlignmentFlag::AlignCenter);
 
         verticalLayout_2->addWidget(lblTextoFuncion);
 
@@ -275,12 +374,11 @@ public:
 
         verticalLayout_2->setStretch(1, 1);
 
-        horizontalLayout->addLayout(verticalLayout_2);
+        horizontalLayout_4->addLayout(verticalLayout_2);
 
-        horizontalLayout->setStretch(0, 2);
-        horizontalLayout->setStretch(1, 10);
+        horizontalLayout_4->setStretch(1, 5);
 
-        verticalLayout_3->addLayout(horizontalLayout);
+        horizontalLayout_5->addLayout(horizontalLayout_4);
 
         MainWindow->setCentralWidget(centralwidget);
         menubar = new QMenuBar(MainWindow);
@@ -324,6 +422,9 @@ public:
         label_3->setText(QCoreApplication::translate("MainWindow", "L\303\255mite Superior", nullptr));
         label_4->setText(QCoreApplication::translate("MainWindow", "Tama\303\261o de pase:", nullptr));
         label->setText(QCoreApplication::translate("MainWindow", "Funcion:", nullptr));
+        chkEjes->setText(QCoreApplication::translate("MainWindow", "Pintar Ejes    ", nullptr));
+        chkEscala->setText(QCoreApplication::translate("MainWindow", "Pintar Escala", nullptr));
+        chkRejilla->setText(QCoreApplication::translate("MainWindow", "Pintar Rejilla", nullptr));
         btnGraf->setText(QCoreApplication::translate("MainWindow", "Dibujar Gr\303\241fica", nullptr));
         lblTextoFuncion->setText(QCoreApplication::translate("MainWindow", "Representaci\303\263n gr\303\241fica de la funci\303\263n ", nullptr));
         lblGraf->setText(QString());

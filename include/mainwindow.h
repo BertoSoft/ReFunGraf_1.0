@@ -34,6 +34,12 @@ private slots:
     void on_actionNueva_triggered();
     void on_btnGraf_clicked();
 
+    void on_chkEjes_clicked();
+
+    void on_chkEscala_clicked();
+
+    void on_chkRejilla_clicked();
+
 private:
     void initUi();
     void initBarraEstado();

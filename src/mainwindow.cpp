@@ -143,6 +143,9 @@ void MainWindow::activaControles(){
     ui->dsbSuperior->setEnabled(true);
     ui->dsbPaso->setEnabled(true);
     ui->btnGraf->setEnabled(true);
+    ui->chkEjes->setEnabled(true);
+    ui->chkEscala->setEnabled(true);
+    ui->chkRejilla->setEnabled(true);
 }
 
 void MainWindow::desactivaControles(){
@@ -151,6 +154,9 @@ void MainWindow::desactivaControles(){
     ui->dsbSuperior->setEnabled(false);
     ui->dsbPaso->setEnabled(false);
     ui->btnGraf->setEnabled(false);
+    ui->chkEjes->setEnabled(false);
+    ui->chkEscala->setEnabled(false);
+    ui->chkRejilla->setEnabled(false);
 }
 
 void MainWindow::limpiaControles(){
@@ -173,7 +179,7 @@ void MainWindow::on_actionNueva_triggered(){
 }
 
 void MainWindow::on_btnGraf_clicked(){
-
+    QString str = "";
     //Borramos la lblGraf
     ui->lblGraf->clear();
 
@@ -183,7 +189,29 @@ void MainWindow::on_btnGraf_clicked(){
         dibujaFuncion(datos, miPixMap);
         ui->lblGraf->setFocus();
     }
+    str = "Representando la función: ";
+    str.append(ui->etFuncion->text());
+    lblTexto->setText(str);
 }
+
+void MainWindow::on_chkEjes_clicked(){
+    QList<QPointF> datos =procesaFuncion();
+    QPixmap miPixmap = dibujaEjes(datos);
+    dibujaFuncion(datos, miPixmap);
+}
+
+void MainWindow::on_chkEscala_clicked(){
+    QList<QPointF> datos =procesaFuncion();
+    QPixmap miPixmap = dibujaEjes(datos);
+    dibujaFuncion(datos, miPixmap);
+}
+
+void MainWindow::on_chkRejilla_clicked(){
+    QList<QPointF> datos =procesaFuncion();
+    QPixmap miPixmap = dibujaEjes(datos);
+    dibujaFuncion(datos, miPixmap);
+}
+
 
 //
 // Funciones Protegidas
@@ -299,9 +327,15 @@ double MainWindow::maxFuncion(QList<QPointF> datos){
         return dMax;
     }
 
-    dMax = datos.first().y();
+    if(!std::isnan(datos.first().y()) && !std::isinf(datos.first().y())){
+        dMax = datos.first().y();
+    }
+    else{
+        dMax = 0;
+    }
+
     for(const auto &p:datos){
-        if( p.y() > dMax){
+        if( p.y() > dMax && !std::isnan(p.y()) && !std::isinf(datos.first().y())){
             dMax = p.y();
         }
     }
@@ -316,16 +350,21 @@ double MainWindow::minFuncion(QList<QPointF> datos){
         return dMin;
     }
 
-    dMin = datos.first().y();
+    if(!std::isnan(datos.first().y()) && !std::isinf(datos.first().y())){
+        dMin = datos.first().y();
+    }
+    else{
+        dMin = 0;
+    }
+
     for(const auto &p:datos){
-        if(p.y() < dMin){
+        if(p.y() < dMin && !std::isnan(p.y()) && !std::isinf(datos.first().y())){
             dMin = p.y();
         }
     }
 
     return dMin;
 }
-
 
 QList<QPointF> MainWindow::procesaFuncion(){
     QList<QPointF> datos;
@@ -410,67 +449,79 @@ QPixmap MainWindow::dibujaEjes(QList<QPointF> datos){
         return static_cast<int>((yMax - y) / (yMax - yMin) * alto);
     };
 
-    //Dibujar la rejilla de fondo
-    QPen penRejilla(Config::colorSecundario, 1, Qt::DotLine);
-    painter.setPen(penRejilla);
-
-    //Lineas verticales
     double pasoRejillaX = (xMax -xMin)/10;
-    for(double x = xMin; x <= xMax; x+= pasoRejillaX){
-        int px = mapearX(x);
-        painter.drawLine(px, 0, px, alto);
-    }
-    // Lineas horizontales
     double pasoRejillaY = (yMax - yMin) / 10;
-    for(double y = yMin; y <= yMax; y += pasoRejillaY){
-        int py = mapearY(y);
-        painter.drawLine(0, py, ancho, py);
-    }
-
-    // Dibujar los ejes
-    QPen penEjes(Qt::white, 2, Qt::SolidLine);
-    painter.setPen(penEjes);
-
     int origenX = mapearX(0);
     int origenY = mapearY(0);
 
-    // Eje x
-    if(origenY >0 && origenY <= alto){
-        painter.drawLine(0, origenY, ancho, origenY);
-    }
-    else{
-        origenY = alto - 20;
+    //
+    //Dibujar la rejilla de fondo
+    //
+    if(ui->chkRejilla->isChecked()){
+        QPen penRejilla(Config::colorSecundario, 1, Qt::DotLine);
+        painter.setPen(penRejilla);
+
+        //Lineas verticales
+        for(double x = xMin; x <= xMax; x+= pasoRejillaX){
+            int px = mapearX(x);
+            painter.drawLine(px, 0, px, alto);
+        }
+        // Lineas horizontales
+        for(double y = yMin; y <= yMax; y += pasoRejillaY){
+            int py = mapearY(y);
+            painter.drawLine(0, py, ancho, py);
+        }
     }
 
-    //Eje y
-    if(origenX > 0 && origenX <= ancho){
-        painter.drawLine(origenX , 0, origenX, alto);
-    }
-    else{
-        origenX = ancho - 20;
+    //
+    // Dibujar los ejes
+    //
+    if(ui->chkEjes->isChecked()){
+        QPen penEjes(Qt::white, 2, Qt::SolidLine);
+        painter.setPen(penEjes);
+
+        // Eje x
+        if(origenY >0 && origenY <= alto){
+            painter.drawLine(0, origenY, ancho, origenY);
+        }
+        else{
+            origenY = alto - 20;
+        }
+
+        //Eje y
+        if(origenX > 0 && origenX <= ancho){
+            painter.drawLine(origenX , 0, origenX, alto);
+        }
+        else{
+            origenX = ancho - 20;
+        }
+
     }
 
+    //
     // Dibujar las marcas de la escala y los textos
-    QPen penMarcas(Qt::yellow, 1, Qt::SolidLine);
-    painter.setPen(penMarcas);
-    painter.setFont(QFont("Arial", 8));
+    //
+    if(ui->chkEscala->isChecked()){
+        QPen penMarcas(Qt::yellow, 1, Qt::SolidLine);
+        painter.setPen(penMarcas);
+        painter.setFont(QFont("Arial", 8));
 
-    //Eje x
-    for(double x = xMin; x <= xMax; x += pasoRejillaX){
-        if(qFuzzyIsNull(x))continue;
-        int px = mapearX(x);
-        painter.drawLine(px , origenY - 10, px, origenY + 10);
-        painter.drawText(px - 25, origenY + 18,  QString::number(x, 'g', 3));
+        //Eje x
+        for(double x = xMin; x <= xMax; x += pasoRejillaX){
+            if(qFuzzyIsNull(x))continue;
+            int px = mapearX(x);
+            painter.drawLine(px , origenY - 10, px, origenY + 10);
+            painter.drawText(px - 25, origenY - 10,  QString::number(x, 'g', 3));
+        }
+
+        //Eje y
+        for(double y = yMin; y <= yMax; y += pasoRejillaY){
+            if(qFuzzyIsNull(y))continue;
+            int py = mapearY(y);
+            painter.drawLine(origenX - 10, py, origenX + 10, py);
+            painter.drawText(origenX - 16, py + 16, QString::number(y, 'g', 3));
+        }
     }
-
-    //Eje y
-    for(double y = yMin; y <= yMax; y += pasoRejillaY){
-        if(qFuzzyIsNull(y))continue;
-        int py = mapearY(y);
-        painter.drawLine(origenX - 10, py, origenX + 10, py);
-        painter.drawText(origenX + 8, py + 16, QString::number(y, 'g', 3));
-    }
-
 
     // Finalizar el dibujo y cargarlo en el QLabel de la UI
     painter.end();
@@ -522,4 +573,5 @@ void MainWindow::dibujaFuncion(QList<QPointF> datos, QPixmap miPixmap){
     // 6. Asignar el Pixmap pintado al QLabel de la interfaz de usuario
     ui->lblGraf->setPixmap(miPixmap);
 }
+
 
