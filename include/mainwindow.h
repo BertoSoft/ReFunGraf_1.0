@@ -42,6 +42,8 @@ private slots:
 
     void on_actionGuardar_triggered();
 
+    void on_actionAbrir_triggered();
+
 private:
     void initUi();
     void initBarraEstado();
@@ -59,9 +61,7 @@ private:
     QList<QPointF> procesaFuncion();
     QPixmap dibujaEjes(QList<QPointF> datos);
     void dibujaFuncion(QList<QPointF> datos, QPixmap lienzo);
-
-
-
+    void dibujaCoordenadas(double x, double y);
     double maxFuncion(QList<QPointF> datos);
     double minFuncion(QList<QPointF> datos);
 
@@ -73,6 +73,15 @@ private:
     QLabel *lblReloj{nullptr};
 
     QTimer *timerReloj{nullptr};
+
+    // =========================================================================
+    // VARIABLES MIEMBRO DE CLASE (Persistencia para el rastreo del ratón)
+    // =========================================================================
+    QList<QPointF> m_datos; // Guarda el último vector de puntos graficado
+    double m_xMin = 0.0;            // Límite mínimo real en X
+    double m_xMax = 0.0;            // Límite máximo real en X
+    double m_yMin = 0.0;            // Valor mínimo real en Y (calculado)
+    double m_yMax = 0.0;            // Valor máximo real en Y (calculado
 
 private:
     Ui::MainWindow *ui;

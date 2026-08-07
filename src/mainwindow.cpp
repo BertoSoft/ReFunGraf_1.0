@@ -26,6 +26,14 @@ MainWindow::MainWindow(QWidget *parent)
     // 2. Inicializar componentes de la UI (Crea lblTexto, lblFecha, etc.)
     initUi();
 
+
+    // Permite capturar el movimiento del ratón aunque no se haga clic
+    ui->lblGraf->setMouseTracking(true);
+
+
+    // Le dice a Qt que esta ventana principal interceptará los eventos del label
+    ui->lblGraf->installEventFilter(this);
+
     // 3. Instalar filtros de eventos de forma segura (QUITANDO qApp para evitar duplicados)
     this->installEventFilter(this);
     ui->etFuncion->installEventFilter(this);
@@ -148,6 +156,7 @@ void MainWindow::activaControles(){
     ui->chkEjes->setEnabled(true);
     ui->chkEscala->setEnabled(true);
     ui->chkRejilla->setEnabled(true);
+    ui->lblGraf->setEnabled(true);
 }
 
 void MainWindow::desactivaControles(){
@@ -159,6 +168,7 @@ void MainWindow::desactivaControles(){
     ui->chkEjes->setEnabled(false);
     ui->chkEscala->setEnabled(false);
     ui->chkRejilla->setEnabled(false);
+    ui->lblGraf->setEnabled(false);
 }
 
 void MainWindow::limpiaControles(){
@@ -166,7 +176,6 @@ void MainWindow::limpiaControles(){
     ui->dsbInferior->setValue(0.0);
     ui->dsbSuperior->setValue(0.0);
     ui->dsbPaso->setValue(0.0);
-
 }
 
 //
@@ -185,10 +194,10 @@ void MainWindow::on_btnGraf_clicked(){
     //Borramos la lblGraf
     ui->lblGraf->clear();
 
-    QList<QPointF> datos = procesaFuncion();
-    if(!datos.isEmpty()){
-        QPixmap miPixMap = dibujaEjes(datos);
-        dibujaFuncion(datos, miPixMap);
+    m_datos = procesaFuncion();
+    if(!m_datos.isEmpty()){
+        QPixmap miPixMap = dibujaEjes(m_datos);
+        dibujaFuncion(m_datos, miPixMap);
         ui->lblGraf->setFocus();
         str = "Representando la función: ";
         str.append(ui->etFuncion->text());
@@ -218,6 +227,10 @@ void MainWindow::on_chkRejilla_clicked(){
 
 void MainWindow::on_actionGuardar_triggered(){
     guardarFuncion();
+}
+
+void MainWindow::on_actionAbrir_triggered(){
+    abrirFuncion();
 }
 
 
@@ -304,6 +317,24 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev){
         }
     }
 
+
+    // ==========================================
+    // SECCIÓN: MouseMove, movimiento del raton
+    // ==========================================
+    if(ev->type() == QEvent::MouseMove){
+
+        // ui.lblGraf
+        if(obj == ui->lblGraf && ui->lblGraf->isEnabled()){
+            QMouseEvent *mouseEv = static_cast<QMouseEvent*>(ev);
+
+            double pixelX = mouseEv->position().x();
+            double pixelY = mouseEv->position().y();
+
+            dibujaCoordenadas(pixelX, pixelY);
+        }
+
+    }
+
     return QMainWindow::eventFilter(obj, ev);
 
 }
@@ -321,7 +352,95 @@ void MainWindow::nuevaFuncion(){
 }
 
 void MainWindow::abrirFuncion(){
+    QString strRutaArchivo = QFileDialog::getOpenFileName(
+        this,
+        Config::APP_NAME,
+        QDir::homePath(),
+        "Archivos de Texto (*.txt);;Archivos de Datos (*.dat);;Todos los archivos (*.*)"
+        );
 
+    if(strRutaArchivo.isEmpty()){
+        return; // El usuario cancelo
+    }
+
+    QFile archivo(strRutaArchivo);
+    if(!archivo.open(QIODevice::ReadOnly | QIODevice::Text)){
+        QMessageBox::critical(
+            this,
+            Config::APP_NAME,
+            "Error: No se pudo abrir el archivo."
+            );
+        return;
+    }
+
+    QTextStream entrada(&archivo);
+    entrada.setEncoding(QStringConverter::Utf8);
+
+    QList<QPointF> datos;
+    QString linea;
+
+    QString strFuncion;
+    double limiteInferior = 0.0;
+    double limiteSuperior = 0.0;
+    double paso = 0.0;
+    int lineaMetadatos = 0;
+
+    while(entrada.readLineInto(&linea)){
+        linea = linea.trimmed();
+        if(linea.isEmpty()){
+            continue;
+        }
+
+        if(linea.startsWith("#")){
+            QString contenido = linea.mid(1).trimmed();
+
+            if(!contenido.startsWith("[PUNTOS:")){ // Ignorar la linea que empieza por [PUNTOS:
+                lineaMetadatos ++;
+                if(lineaMetadatos == 1) strFuncion = contenido;
+                else if(lineaMetadatos == 2) limiteInferior = contenido.toDouble();
+                else if(lineaMetadatos == 3) limiteSuperior = contenido.toDouble();
+                else if(lineaMetadatos == 4) paso = contenido.toDouble();
+            }
+            continue;
+        }
+
+        // Leemos la matriz de QPOnitF
+        QStringList partes = linea.split(',');
+        if(partes.size() == 2){
+            bool xOk, yOk;
+            double x = partes[0].toDouble(&xOk);
+            double y = partes[1].toDouble(&yOk);
+
+            if(xOk && yOk){
+                datos.append(QPointF(x, y));
+            }
+        }
+    }
+    archivo.close();
+
+    // 5. Validar si se cargaron datos válidos
+    if (datos.isEmpty()) {
+        QMessageBox::warning(
+            this,
+            Config::APP_NAME,
+            "El archivo no contiene puntos válidos o el formato es incorrecto."
+            );
+        return;
+    }
+
+    if(lineaMetadatos == 4){
+        ui->etFuncion->setText(strFuncion);
+        ui->dsbInferior->setValue(limiteInferior);
+        ui->dsbSuperior->setValue(limiteSuperior);
+        ui->dsbPaso->setValue(paso);
+
+        QString str = "Representando la función: ";
+        str.append(ui->etFuncion->text());
+        lblTexto->setText(str);
+        activaControles();
+        ui->btnGraf->setEnabled(true);
+        ui->btnGraf->click();
+    }
 }
 
 void MainWindow::guardarFuncion(){
@@ -379,11 +498,10 @@ void MainWindow::guardarFuncion(){
     // 9. Cerrar el flujo de datos del archivo
     archivo.close();
 
-    lblTexto->setText("Guardado exitoso en modo texto: " + QDir::toNativeSeparators(strRutaArchivo));
     QMessageBox::information(
         this,
         Config::APP_NAME,
-        "El archivo se ha guardado correctamente utilizando el flujo de texto de QFile."
+        "El archivo se ha guardado correctamente."
         );
 }
 
@@ -612,25 +730,25 @@ void MainWindow::dibujaFuncion(QList<QPointF> datos, QPixmap miPixmap){
     painter.setRenderHint(QPainter::Antialiasing); // Activa suavizado de bordes
 
     // Maximos y minimos
-    double xMin = datos.first().x();
-    double xMax = datos.last().x();
-    double yMin = minFuncion(datos);
-    double yMax = maxFuncion(datos);
+    m_xMin = datos.first().x();
+    m_xMax = datos.last().x();
+    m_yMin = minFuncion(datos);
+    m_yMax = maxFuncion(datos);
 
-    if(qFuzzyCompare(yMin, yMax)){
-        yMin --;
-        yMax ++;
+    if(qFuzzyCompare(m_yMin, m_yMax)){
+        m_yMin --;
+        m_yMax ++;
     }
 
-    double rangoX = (qFuzzyCompare(xMax, xMin)) ? 1.0 : (xMax - xMin);
-    double rangoY = (qFuzzyCompare(yMax, yMin)) ? 1.0 : (yMax - yMin);
+    double rangoX = (qFuzzyCompare(m_xMax, m_xMin)) ? 1.0 : (m_xMax - m_xMin);
+    double rangoY = (qFuzzyCompare(m_yMax, m_yMin)) ? 1.0 : (m_yMax - m_yMin);
 
     QPen penPuntos(Config::colorPrimario, 1);
     painter.setPen(penPuntos);
 
-    for(const auto &p: datos){
-        double pixelX = ((p.x() - xMin) / rangoX) * ancho;
-        double pixelY = alto - (((p.y() - yMin) / rangoY) * alto);
+    for(const auto &p: m_datos){
+        double pixelX = ((p.x() - m_xMin) / rangoX) * ancho;
+        double pixelY = alto - (((p.y() - m_yMin) / rangoY) * alto);
 
         painter.drawPoint(pixelX, pixelY);
     }
@@ -641,6 +759,42 @@ void MainWindow::dibujaFuncion(QList<QPointF> datos, QPixmap miPixmap){
     ui->lblGraf->setPixmap(miPixmap);
 }
 
+void MainWindow::dibujaCoordenadas(double pixelX, double pixelY){
+
+    int ancho = ui->lblGraf->width();
+    int alto = ui->lblGraf->height();
+
+    double rangoX = (qFuzzyCompare(m_xMax, m_xMin)) ? 1.0 : (m_xMax - m_xMin);
+    double rangoY = (qFuzzyCompare(m_yMax, m_yMin)) ? 1.0 : (m_yMax - m_yMin);
 
 
+    //Asegurarse de que los pixeles esten entre los limites
+    if(pixelX >= 0 && pixelX <= ancho && pixelY >= 0 && pixelY <= alto){
+
+        // 2. CONVERSIÓN INVERSA: De píxeles de pantalla a coordenadas matemáticas (X, Y)
+        double valorX = m_xMin + (pixelX / ancho) * rangoX;
+        double valorY = m_yMin + ((alto - pixelY) / alto) * rangoY;
+        // Define un margen de error (tolerancia) según la escala de tus datos
+        const double tolerancia = ui->dsbPaso->value() * 10;
+        bool encontrado = false;
+
+        // Si el raton esta encima de la funcion :
+        for(const auto &p: m_datos){
+            if(std::abs(p.x() - valorX) < tolerancia && std::abs(p.y() - valorY) < tolerancia){
+                QString str = "x = ";
+                str.append(QString::number(valorX));
+                str.append("    y = ");
+                str.append(QString::number(valorY));
+                lblTexto->setText(str);
+                encontrado = true;
+                break;
+            }
+            if(!encontrado){ // Se recorrio el bucle y no se paso por encima de la funcion
+                QString str = "Representando la función: ";
+                str.append(ui->etFuncion->text());
+                lblTexto->setText(str);
+            }
+        }
+    }
+}
 
