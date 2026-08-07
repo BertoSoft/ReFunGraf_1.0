@@ -40,6 +40,8 @@ private slots:
 
     void on_chkRejilla_clicked();
 
+    void on_actionGuardar_triggered();
+
 private:
     void initUi();
     void initBarraEstado();

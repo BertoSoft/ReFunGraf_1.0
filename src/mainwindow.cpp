@@ -12,6 +12,7 @@
 #include <QMessageBox>
 #include <QPainter>
 #include <QPixmap>
+#include <QFileDialog>
 
 // Ciclo de vida de la app, constructor y destructor
 MainWindow::MainWindow(QWidget *parent)
@@ -47,6 +48,7 @@ void MainWindow::initUi(){
     initDsb();
     lblTexto->setText("Representación Gráficas de Funciones V 1.0");
     desactivaControles();
+    ui->actionGuardar->setEnabled(false);
 }
 
 void MainWindow::initBarraEstado(){
@@ -188,10 +190,12 @@ void MainWindow::on_btnGraf_clicked(){
         QPixmap miPixMap = dibujaEjes(datos);
         dibujaFuncion(datos, miPixMap);
         ui->lblGraf->setFocus();
+        str = "Representando la función: ";
+        str.append(ui->etFuncion->text());
+        lblTexto->setText(str);
+        ui->actionGuardar->setEnabled(true);
     }
-    str = "Representando la función: ";
-    str.append(ui->etFuncion->text());
-    lblTexto->setText(str);
+
 }
 
 void MainWindow::on_chkEjes_clicked(){
@@ -210,6 +214,10 @@ void MainWindow::on_chkRejilla_clicked(){
     QList<QPointF> datos =procesaFuncion();
     QPixmap miPixmap = dibujaEjes(datos);
     dibujaFuncion(datos, miPixmap);
+}
+
+void MainWindow::on_actionGuardar_triggered(){
+    guardarFuncion();
 }
 
 
@@ -317,7 +325,66 @@ void MainWindow::abrirFuncion(){
 }
 
 void MainWindow::guardarFuncion(){
+    QList<QPointF> datos = procesaFuncion();
+    if(datos.isEmpty()){
+        return;
+    }
 
+    QString nombreSugerido = ui->etFuncion->text().trimmed();
+    nombreSugerido.replace(QRegularExpression("[\\\\/:*?\"<>|()]"), "_");
+    if (nombreSugerido.isEmpty()) {
+        nombreSugerido = "datos_funcion";
+    }
+
+    QString strRutaArchivo = QFileDialog::getSaveFileName(
+        this,
+        "Guardar datos de la funcion",
+        QDir::homePath() + "/" + nombreSugerido + ".txt",
+        "Archivos de Texto (*.txt);;Archivos de Datos (*.dat);; Todos los archivos (*.*)"
+        );
+
+    if(strRutaArchivo.isEmpty()){
+        return; // El usuario cancelo la operacion
+    }
+
+    QFile archivo(strRutaArchivo);
+
+    if (!archivo.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::critical(
+            this,
+            Config::APP_NAME,
+            "Error: No se pudo abrir el archivo para escribir en modo texto."
+            );
+        return;
+    }
+
+    QTextStream salida(&archivo);
+    salida.setEncoding(QStringConverter::Utf8);
+
+    // Escribios los metadatos precedidos de #
+    salida << "#" + ui->etFuncion->text().trimmed() + "\n";
+    salida << "# " << ui->dsbInferior->value() << "\n";
+    salida << "# " << ui->dsbSuperior->value() << "\n";
+    salida << "# " << ui->dsbPaso->value() << "\n";
+
+    // 7. Escribir la línea de cabecera informativa
+    salida << "# [PUNTOS:" << datos.size() << "]\n";
+
+    // 8. Escribir el vector de puntos (X,Y) con alta precisión decimal
+    salida << qSetRealNumberPrecision(10);
+    for (const QPointF &punto : datos) {
+        salida << punto.x() << "," << punto.y() << "\n";
+    }
+
+    // 9. Cerrar el flujo de datos del archivo
+    archivo.close();
+
+    lblTexto->setText("Guardado exitoso en modo texto: " + QDir::toNativeSeparators(strRutaArchivo));
+    QMessageBox::information(
+        this,
+        Config::APP_NAME,
+        "El archivo se ha guardado correctamente utilizando el flujo de texto de QFile."
+        );
 }
 
 double MainWindow::maxFuncion(QList<QPointF> datos){
@@ -573,5 +640,7 @@ void MainWindow::dibujaFuncion(QList<QPointF> datos, QPixmap miPixmap){
     // 6. Asignar el Pixmap pintado al QLabel de la interfaz de usuario
     ui->lblGraf->setPixmap(miPixmap);
 }
+
+
 
 
