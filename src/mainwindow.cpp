@@ -122,11 +122,11 @@ void MainWindow::initDsb(){
 
     ui->dsbInferior->setRange(-100, 100);
     ui->dsbSuperior->setRange(-100, 100);
-    ui->dsbPaso->setRange(-1, 1);
+    ui->dsbPaso->setRange(0, 1);
 
     ui->dsbInferior->setDecimals(2);
     ui->dsbSuperior->setDecimals(2);
-    ui->dsbPaso->setDecimals(3);
+    ui->dsbPaso->setDecimals(5);
 
     ui->dsbInferior->setSingleStep(10);
     ui->dsbSuperior->setSingleStep(10);
@@ -138,7 +138,7 @@ void MainWindow::initDsb(){
     ui->dsbPaso->setValue(0.00);
 
     // Hacemos que el paso sea como minimo 0.0001 y que limite supeior siempre sea mayor
-    ui->dsbPaso->setMinimum(0.001);
+    ui->dsbPaso->setMinimum(0.00001);
     connect(ui->dsbInferior, &QDoubleSpinBox::valueChanged, this, [this](double val){
         ui->dsbSuperior->setMinimum(val + 0.01);
     });
@@ -690,7 +690,7 @@ QPixmap MainWindow::dibujaEjes(QList<QPointF> datos){
         }
 
         //Eje y
-        if(origenX > 0 && origenX <= ancho){
+        if(origenX >= 0 && origenX <= ancho){
             painter.drawLine(origenX , 0, origenX, alto);
         }
         else{
@@ -712,7 +712,7 @@ QPixmap MainWindow::dibujaEjes(QList<QPointF> datos){
             if(qFuzzyIsNull(x))continue;
             int px = mapearX(x);
             painter.drawLine(px , origenY - 10, px, origenY + 10);
-            painter.drawText(px - 25, origenY - 10,  QString::number(x, 'g', 3));
+            painter.drawText(px - 30, origenY - 10,  QString::number(x, 'g', 3));
         }
 
         //Eje y
@@ -720,7 +720,7 @@ QPixmap MainWindow::dibujaEjes(QList<QPointF> datos){
             if(qFuzzyIsNull(y))continue;
             int py = mapearY(y);
             painter.drawLine(origenX - 10, py, origenX + 10, py);
-            painter.drawText(origenX - 16, py + 16, QString::number(y, 'g', 3));
+            painter.drawText(origenX - 30, py + 16, QString::number(y, 'g', 3));
         }
     }
 
@@ -791,7 +791,7 @@ void MainWindow::dibujaCoordenadas(double pixelX, double pixelY){
         double valorX = m_xMin + (pixelX / ancho) * rangoX;
         double valorY = m_yMin + ((alto - pixelY) / alto) * rangoY;
         // Define un margen de error (tolerancia) según la escala de tus datos
-        const double tolerancia = ui->dsbPaso->value() * 10;
+        const double tolerancia = ui->dsbPaso->value() * 10000;
         bool encontrado = false;
 
         // Si el raton esta encima de la funcion :
