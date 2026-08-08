@@ -506,46 +506,62 @@ void MainWindow::guardarFuncion(){
 }
 
 double MainWindow::maxFuncion(QList<QPointF> datos){
-    double dMax;
+    double dMax = -std::numeric_limits<double>::infinity();
+    const double TOLERANCIA = 100;
 
     if(datos.isEmpty()){
         return dMax;
     }
 
     if(!std::isnan(datos.first().y()) && !std::isinf(datos.first().y())){
-        dMax = datos.first().y();
-    }
-    else{
-        dMax = 0;
+        if(datos.first().y() > TOLERANCIA) {
+            dMax = TOLERANCIA;
+        }
+        else{
+            dMax = datos.first().y();
+        }
     }
 
     for(const auto &p:datos){
         if( p.y() > dMax && !std::isnan(p.y()) && !std::isinf(datos.first().y())){
+            if(p.y() > TOLERANCIA) continue;
             dMax = p.y();
         }
     }
 
+    if(dMax == -std::numeric_limits<double>::infinity()){
+        return TOLERANCIA;
+    }
     return dMax;
 }
 
 double MainWindow::minFuncion(QList<QPointF> datos){
-    double dMin;
+    double dMin = std::numeric_limits<double>::infinity();
+    const double TOLERANCIA = -100;
+
 
     if(datos.isEmpty()){
         return dMin;
     }
 
     if(!std::isnan(datos.first().y()) && !std::isinf(datos.first().y())){
-        dMin = datos.first().y();
-    }
-    else{
-        dMin = 0;
+        if(datos.first().y() < TOLERANCIA){
+            dMin = TOLERANCIA;
+        }
+        else{
+            dMin = datos.first().y();
+        }
     }
 
     for(const auto &p:datos){
         if(p.y() < dMin && !std::isnan(p.y()) && !std::isinf(datos.first().y())){
+            if(p.y() < TOLERANCIA) continue;
             dMin = p.y();
         }
+    }
+
+    if(dMin == std::numeric_limits<double>::infinity()){
+        return TOLERANCIA;
     }
 
     return dMin;
