@@ -23,19 +23,14 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle(Config::APP_NAME);
     setWindowIcon(QIcon(":/recursos/icono.jpeg"));
 
-    // 2. Inicializar componentes de la UI (Crea lblTexto, lblFecha, etc.)
     initUi();
-
 
     // Permite capturar el movimiento del ratón aunque no se haga clic
     ui->lblGraf->setMouseTracking(true);
 
-
-    // Le dice a Qt que esta ventana principal interceptará los eventos del label
-    ui->lblGraf->installEventFilter(this);
-
-    // 3. Instalar filtros de eventos de forma segura (QUITANDO qApp para evitar duplicados)
+    // Instalar filtros de eventos de forma segura (QUITANDO qApp para evitar duplicados)
     this->installEventFilter(this);
+    ui->lblGraf->installEventFilter(this);
     ui->etFuncion->installEventFilter(this);
     ui->dsbInferior->installEventFilter(this);
     ui->dsbSuperior->installEventFilter(this);
@@ -73,7 +68,7 @@ void MainWindow::initBarraEstado(){
     const QFrame::Shape     formaPanel      = QFrame::WinPanel;
     const QFrame::Shadow    sombraHundida   = QFrame::Sunken;
     QString estiloEtiquetas = "QLabel { "
-                              "color: #F63D03; "
+                              "color: #673AB7; "
                               "font-weight: bold; "
                               "padding: 2px 5px; "
                               "}";
@@ -272,6 +267,8 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev){
                 return true; // CORREGIDO: Evita propagación errática
             }
             if (obj == ui->dsbSuperior) {
+                double paso = (ui->dsbSuperior->value() - ui->dsbInferior->value()) / 10000;
+                ui->dsbPaso->setValue( paso);
                 ui->dsbPaso->setFocus();
                 return true; // CORREGIDO: Evita propagación errática
             }
@@ -316,7 +313,6 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev){
             }
         }
     }
-
 
     // ==========================================
     // SECCIÓN: MouseMove, movimiento del raton
@@ -625,16 +621,14 @@ QPixmap MainWindow::dibujaEjes(QList<QPointF> datos){
 
     int ancho = ui->lblGraf->width();
     int alto = ui->lblGraf->height();
-
-    miPixmap = QPixmap(ancho, alto);
-    miPixmap.fill(Qt::black);
-
-    QPainter painter(&miPixmap);
-
     double xMax = ui->dsbSuperior->value();
     double xMin = ui->dsbInferior->value();
     double yMax = maxFuncion(datos);
     double yMin = minFuncion(datos);
+
+    miPixmap = QPixmap(ancho, alto);
+    miPixmap.fill(Qt::black);
+    QPainter painter(&miPixmap);
 
     // si ymin == yMax, tenemos que colocar un rango
     if(yMin == yMax){
@@ -682,20 +676,16 @@ QPixmap MainWindow::dibujaEjes(QList<QPointF> datos){
         painter.setPen(penEjes);
 
         // Eje x
-        if(origenY >0 && origenY <= alto){
-            painter.drawLine(0, origenY, ancho, origenY);
-        }
-        else{
+        if(origenY < 0 || origenY >= alto){
             origenY = alto - 20;
         }
+        painter.drawLine(0, origenY, ancho, origenY);
 
         //Eje y
-        if(origenX >= 0 && origenX <= ancho){
-            painter.drawLine(origenX , 0, origenX, alto);
-        }
-        else{
+        if(origenX < 0 || origenX >= ancho){
             origenX = ancho - 20;
         }
+        painter.drawLine(origenX , 0, origenX, alto);
 
     }
 
@@ -707,20 +697,33 @@ QPixmap MainWindow::dibujaEjes(QList<QPointF> datos){
         painter.setPen(penMarcas);
         painter.setFont(QFont("Arial", 8));
 
-        //Eje x
+        //Eje x, si origenY > Alto / 2 --> lettra arriba, sno letra abajo
+        int textoX, textoY;
+        if(origenY > (alto /2)){
+            textoY = origenY - 30;
+        }
+        else{
+            textoY = origenY + 30;
+        }
         for(double x = xMin; x <= xMax; x += pasoRejillaX){
             if(qFuzzyIsNull(x))continue;
             int px = mapearX(x);
             painter.drawLine(px , origenY - 10, px, origenY + 10);
-            painter.drawText(px - 30, origenY - 10,  QString::number(x, 'g', 3));
+            painter.drawText(px - 10, textoY,  QString::number(x, 'g', 3));
         }
 
         //Eje y
+        if(origenX > (ancho / 2)){
+            textoX = origenX - 40;
+        }
+        else{
+            textoX = origenX + 16;
+        }
         for(double y = yMin; y <= yMax; y += pasoRejillaY){
             if(qFuzzyIsNull(y))continue;
             int py = mapearY(y);
             painter.drawLine(origenX - 10, py, origenX + 10, py);
-            painter.drawText(origenX - 30, py + 16, QString::number(y, 'g', 3));
+            painter.drawText(textoX, py + 8, QString::number(y, 'g', 3));
         }
     }
 
