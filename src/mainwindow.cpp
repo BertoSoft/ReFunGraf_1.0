@@ -903,44 +903,62 @@ void MainWindow::calculaTrapecios(){
     auto mapearY = [=] (double y){
         return static_cast<int>((m_yMax - y) / (m_yMax - m_yMin) * alto);
     };
-
-    QPainter pintor(&m_pixmap);
+    QPixmap miPixmap = m_pixmap;
+    QPainter pintor(&miPixmap);
     pintor.setRenderHint(QPainter::Antialiasing);
 
     // Configurar colores del sombreado (Verde semi-transparente)
     pintor.setBrush(QColor(46, 125, 50, 60));
     pintor.setPen(QPen(QColor(46, 125, 50, 150), 1, Qt::SolidLine));
 
-    int n = static_cast<int>((m_xMax - m_xMin) / ui->dsbPaso->value());
+    // CORRECCIÓN 3: Limitar de forma segura la base del trapecio (el eje Y = 0) dentro del recuadro visual
+    int pixelOrigenY = mapearY(0);
+    if (pixelOrigenY < 0) pixelOrigenY = 0;
+    if (pixelOrigenY > alto) pixelOrigenY = alto;
+
+    for(int i =0; i < m_datos.size() -1; i++){
+        double x0 = m_datos[i].x();
+        double x1 = m_datos[i+1].x();
+        double y0 = m_datos[i].y();
+        double y1 = m_datos[i+1].y();
+
+        // Calculamos el h de este intervalo para admitir máxima precisión ante cualquier desborde o redondeo
+        double h_local = x1 - x0;
+
+        // Sumatoria del trapecio actual
+        area += (h_local / 2.0) * (y0 + y1);
+
+        // Obtenemos los pixeles del trapecio
+        double pixelX0 = mapearX(x0);
+        double pixelX1 = mapearX(x1);
+        double pixelY0 = mapearY(y0);
+        double pixelY1 = mapearY(y1);
+        double pixelOrigenX = mapearX(0);
+        double pixelOrigenY = mapearY(0);
+
+        QPolygonF trapecioVisual;
+        trapecioVisual << QPointF(pixelX0, pixelOrigenY)   // Esquina inferior izquierda (en el eje)
+                       << QPointF(pixelX0, pixelY0)   // Esquina superior izquierda (en la curva)
+                       << QPointF(pixelX1, pixelY1) // Esquina superior derecha (en la curva)
+                       << QPointF(pixelX1, pixelOrigenY); // Esquina inferior derecha (en el eje)
+
+        pintor.setPen(Qt::NoPen); // Quitar borde al trapecio para que el relleno sea homogéneo
+        pintor.drawPolygon(trapecioVisual);
 
 
 
+    }
 
 
+    pintor.end();
 
+    // Asignar el Pixmap pintado al QLabel de la interfaz
+    ui->lblGraf->setPixmap(miPixmap);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    QString str = "Area = ";
+    str.append(QString::number(area));
+    str.append(" Unidades.");
+    ui->lblIntegral->setText(str);
 }
 
 void MainWindow::calculaSimpson(){

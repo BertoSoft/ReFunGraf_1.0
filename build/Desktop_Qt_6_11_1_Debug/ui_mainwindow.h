@@ -52,7 +52,7 @@ public:
     QLineEdit *etFuncion;
     QSpacerItem *verticalSpacer_2;
     QComboBox *spIntegral;
-    QLabel *label_5;
+    QLabel *lblIntegral;
     QSpacerItem *verticalSpacer;
     QVBoxLayout *verticalLayout;
     QHBoxLayout *horizontalLayout;
@@ -279,17 +279,17 @@ public:
 
         verticalLayout_4->addWidget(spIntegral);
 
-        label_5 = new QLabel(centralwidget);
-        label_5->setObjectName("label_5");
+        lblIntegral = new QLabel(centralwidget);
+        lblIntegral->setObjectName("lblIntegral");
         QFont font1;
         font1.setPointSize(14);
-        label_5->setFont(font1);
-        label_5->setStyleSheet(QString::fromUtf8("background-color: #FCECC0;\n"
+        lblIntegral->setFont(font1);
+        lblIntegral->setStyleSheet(QString::fromUtf8("background-color: #FCECC0;\n"
 "   	color: #F63D03;"));
-        label_5->setFrameShape(QFrame::Shape::WinPanel);
-        label_5->setFrameShadow(QFrame::Shadow::Plain);
+        lblIntegral->setFrameShape(QFrame::Shape::WinPanel);
+        lblIntegral->setFrameShadow(QFrame::Shadow::Plain);
 
-        verticalLayout_4->addWidget(label_5);
+        verticalLayout_4->addWidget(lblIntegral);
 
         verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
 
@@ -457,7 +457,7 @@ public:
         label_3->setText(QCoreApplication::translate("MainWindow", "L\303\255mite Superior", nullptr));
         label_4->setText(QCoreApplication::translate("MainWindow", "Tama\303\261o de pase:", nullptr));
         label->setText(QCoreApplication::translate("MainWindow", "Funcion:", nullptr));
-        label_5->setText(QString());
+        lblIntegral->setText(QString());
         chkEjes->setText(QCoreApplication::translate("MainWindow", "Pintar Ejes    ", nullptr));
         chkEscala->setText(QCoreApplication::translate("MainWindow", "Pintar Escala", nullptr));
         chkRejilla->setText(QCoreApplication::translate("MainWindow", "Pintar Rejilla", nullptr));
