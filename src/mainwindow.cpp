@@ -269,6 +269,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev){
             if (obj == ui->dsbSuperior) {
                 double paso = (ui->dsbSuperior->value() - ui->dsbInferior->value()) / 10000;
                 ui->dsbPaso->setValue( paso);
+                ui->dsbPaso->setMinimum(paso);
                 ui->dsbPaso->setFocus();
                 return true; // CORREGIDO: Evita propagación errática
             }
@@ -588,7 +589,7 @@ QList<QPointF> MainWindow::procesaFuncion(){
     // Libreria externa tinyExpr, Configurar la variable que el parser va a buscar en el string (en este caso 'x')
     //
     double x_actual;
-    te_variable vars[] = {{"x", &x_actual}};
+    te_variable vars[] = {{"x", &x_actual, TE_VARIABLE}};
 
     // Compilar la expresión matemática introducida por el usuario
     int error;
@@ -700,14 +701,18 @@ QPixmap MainWindow::dibujaEjes(QList<QPointF> datos){
         //Eje x, si origenY > Alto / 2 --> lettra arriba, sno letra abajo
         int textoX, textoY;
         if(origenY > (alto /2)){
-            textoY = origenY - 30;
+            textoY = origenY - 25;
         }
         else{
-            textoY = origenY + 30;
+            textoY = origenY + 25;
         }
         for(double x = xMin; x <= xMax; x += pasoRejillaX){
-            if(qFuzzyIsNull(x))continue;
+            if(std::abs(x) < (pasoRejillaX / 2)) continue;
             int px = mapearX(x);
+
+            QString tmp = QString::number(x);
+
+
             painter.drawLine(px , origenY - 10, px, origenY + 10);
             painter.drawText(px - 10, textoY,  QString::number(x, 'g', 3));
         }
@@ -717,13 +722,13 @@ QPixmap MainWindow::dibujaEjes(QList<QPointF> datos){
             textoX = origenX - 40;
         }
         else{
-            textoX = origenX + 16;
+            textoX = origenX + 20;
         }
         for(double y = yMin; y <= yMax; y += pasoRejillaY){
-            if(qFuzzyIsNull(y))continue;
+            if(std::abs(y) < (pasoRejillaY / 2)) continue;
             int py = mapearY(y);
             painter.drawLine(origenX - 10, py, origenX + 10, py);
-            painter.drawText(textoX, py + 8, QString::number(y, 'g', 3));
+            painter.drawText(textoX, py + 6, QString::number(y, 'g', 3));
         }
     }
 
@@ -765,16 +770,21 @@ void MainWindow::dibujaFuncion(QList<QPointF> datos, QPixmap miPixmap){
     QPen penPuntos(Config::colorPrimario, 1);
     painter.setPen(penPuntos);
 
+    double pixelXOld = m_datos[0].x();
+    double pixelYOld = m_datos[0].y();
     for(const auto &p: m_datos){
         double pixelX = ((p.x() - m_xMin) / rangoX) * ancho;
         double pixelY = alto - (((p.y() - m_yMin) / rangoY) * alto);
 
-        painter.drawPoint(pixelX, pixelY);
+        painter.drawLine(pixelXOld, pixelYOld, pixelX, pixelY);
+        pixelXOld = pixelX;
+        pixelYOld = pixelY;
     }
 
     painter.end(); // Finalizar las operaciones sobre el lienzo de memoria
 
-    // 6. Asignar el Pixmap pintado al QLabel de la interfaz de usuario
+    // 6. Asignar el Pixmap pintado al QLabel de la interfaz de usuario y al pixmap miembro
+    m_pixmap = miPixmap;
     ui->lblGraf->setPixmap(miPixmap);
 }
 
@@ -790,29 +800,52 @@ void MainWindow::dibujaCoordenadas(double pixelX, double pixelY){
     //Asegurarse de que los pixeles esten entre los limites
     if(pixelX >= 0 && pixelX <= ancho && pixelY >= 0 && pixelY <= alto){
 
-        // 2. CONVERSIÓN INVERSA: De píxeles de pantalla a coordenadas matemáticas (X, Y)
+        //CONVERSIÓN INVERSA: De píxeles de pantalla a coordenadas matemáticas (X, Y)
         double valorX = m_xMin + (pixelX / ancho) * rangoX;
         double valorY = m_yMin + ((alto - pixelY) / alto) * rangoY;
+
         // Define un margen de error (tolerancia) según la escala de tus datos
-        const double tolerancia = ui->dsbPaso->value() * 10000;
-        bool encontrado = false;
+        const double tolerancia = 5; // En pixeles de pantalla
 
         // Si el raton esta encima de la funcion :
         for(const auto &p: m_datos){
-            if(std::abs(p.x() - valorX) < tolerancia && std::abs(p.y() - valorY) < tolerancia){
+
+            //CONVERTIR EL PUNTO DE LA FUNCIÓN A PÍXELES DE PANTALLA
+            double pX = ((p.x() - m_xMin) / rangoX) * ancho;
+            double pY = alto - (((p.y() - m_yMin) / rangoY) * alto);
+
+            // 3. CALCULAR DISTANCIA REAL EN PÍXELES (Pitágoras: Verificamos un radio circular)
+            double distancia = std::hypot(pixelX - pX, pixelY - pY);
+
+            if(distancia <= tolerancia){
                 QString str = "x = ";
                 str.append(QString::number(valorX));
                 str.append("    y = ");
                 str.append(QString::number(valorY));
-                lblTexto->setText(str);
-                encontrado = true;
+
+                QPixmap pixmapTexto = m_pixmap;
+                QPainter painter(&pixmapTexto);
+
+                // Configurar fuente y color
+                QFont fuente("Arial", 14, QFont::Bold);
+                painter.setFont(fuente);
+                painter.setPen(QPen(Config::backColor));
+
+                // si estamos en la primera mitad de la grafica o en la segunda
+                double ptoX = 0.0;
+                if((ancho - pixelX) < 250){
+                    ptoX = pixelX - 250;
+                }
+                else{
+                    ptoX = pixelX;
+                }
+                painter.drawText(ptoX, pixelY, str);
+
+                painter.end();
+                ui->lblGraf->setPixmap(pixmapTexto);
                 break;
             }
-            if(!encontrado){ // Se recorrio el bucle y no se paso por encima de la funcion
-                QString str = "Representando la función: ";
-                str.append(ui->etFuncion->text());
-                lblTexto->setText(str);
-            }
+            ui->lblGraf->setPixmap(m_pixmap);
         }
     }
 }
