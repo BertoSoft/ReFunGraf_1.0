@@ -50,6 +50,7 @@ private:
     void refrescaReloj();
     void initReloj();
     void initDsb();
+    void initSp();
     void activaControles();
     void desactivaControles();
     void limpiaControles();
@@ -64,6 +65,11 @@ private:
     void dibujaCoordenadas(double x, double y);
     double maxFuncion(QList<QPointF> datos);
     double minFuncion(QList<QPointF> datos);
+    void dibujaIntegral(int indice);
+    void calculaTrapecios();
+    void calculaSimpson();
+    void calculaSimpson38();
+    void calculaBoole();
 
     //
     // Punteros encapsulados protegidos de manipulaciones externas

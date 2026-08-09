@@ -12,6 +12,7 @@
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QComboBox>
 #include <QtWidgets/QDoubleSpinBox>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
@@ -49,7 +50,10 @@ public:
     QDoubleSpinBox *dsbPaso;
     QLabel *label;
     QLineEdit *etFuncion;
-    QSpacerItem *verticalSpacer_3;
+    QSpacerItem *verticalSpacer_2;
+    QComboBox *spIntegral;
+    QLabel *label_5;
+    QSpacerItem *verticalSpacer;
     QVBoxLayout *verticalLayout;
     QHBoxLayout *horizontalLayout;
     QRadioButton *chkEjes;
@@ -60,9 +64,8 @@ public:
     QHBoxLayout *horizontalLayout_3;
     QRadioButton *chkRejilla;
     QSpacerItem *horizontalSpacer_3;
-    QSpacerItem *verticalSpacer_2;
+    QSpacerItem *verticalSpacer_3;
     QPushButton *btnGraf;
-    QSpacerItem *verticalSpacer;
     QVBoxLayout *verticalLayout_2;
     QLabel *lblTextoFuncion;
     QLabel *lblGraf;
@@ -104,6 +107,23 @@ public:
 "        color: #000000;\n"
 "	}\n"
 "\n"
+"QComboBox {\n"
+"    background-color: #FCECC0; /* Tu color de fondo (ejemplo: morado de tu app) */\n"
+"    color: #F63D03;              /* Color del texto */\n"
+"    border: 1px solid #F63D03; /* Obligatorio: define un borde para activar el fondo */\n"
+"    border-radius: 4px;\n"
+"    padding: 4px 10px;\n"
+"}\n"
+"\n"
+"QComboBox QAbstractItemView {\n"
+"       background-color: #FCECC0;  /* "
+                        "Mismo color de fondo para la lista */\n"
+"       color: #F63D03;              /* Texto de la lista en color primario */\n"
+"       selection-background-color: #673AB7;  /* Fondo morado al seleccionar un elemento */\n"
+"       selection-color: white;    /* Texto blanco para el elemento seleccionado */\n"
+"       border: 1px solid #673AB7;\n"
+"    }\n"
+"\n"
 "    /* Barra de estado con fondo crema unificado */\n"
 "    QStatusBar {\n"
 "        background-color: #FCECC0;\n"
@@ -120,12 +140,12 @@ public:
 "		background-color:#FCECC0;\n"
 "	}\n"
 "\n"
-"/* Estado Hover: Efecto simulado de hundido (Sunken) al pasar el"
-                        " rat\303\263n */\n"
+"/* Estado Hover: Efecto simulado de hundido (Sunken) al pasar el rat\303\263n */\n"
 "QToolBar QToolButton:hover {\n"
 "    background-color: #FCECC0; /* Un gris m\303\241s oscuro que el fondo para dar profundidad */\n"
 "    border-top: 1px solid #999999;     /* Sombra interna superior */\n"
-"    border-left: 1px solid #999999;    /* Sombra interna izquierda */\n"
+"    border-left: 1px solid #999999;    /* Somb"
+                        "ra interna izquierda */\n"
 "    border-bottom: 1px solid #ffffff;  /* Brillo inferior */\n"
 "    border-right: 1px solid #ffffff;   /* Brillo derecho */\n"
 "}\n"
@@ -141,8 +161,7 @@ public:
 "    padding-left: 5px; /* Desplaza ligeramente hacia la derecha para simular presi\303\263n */\n"
 "}\n"
 "\n"
-"    /* Estilo gen\303"
-                        "\251rico para botones que a\303\261adas en el futuro */\n"
+"    /* Estilo gen\303\251rico para botones que a\303\261adas en el futuro */\n"
 "    QPushButton {\n"
 "        background-color: #F63D03;\n"
 "        color: #FFFFFF;\n"
@@ -151,7 +170,8 @@ public:
 "        background-color: #673AB7;\n"
 "    }\n"
 "    QPushButton:pressed {\n"
-"    	background-color: #000000;\n"
+"    	ba"
+                        "ckground-color: #000000;\n"
 "    }\n"
 "\n"
 "	QProgressBar {\n"
@@ -249,9 +269,31 @@ public:
 
         verticalLayout_4->addLayout(verticalLayout_3);
 
-        verticalSpacer_3 = new QSpacerItem(20, 40, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+        verticalSpacer_2 = new QSpacerItem(192, 13, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
 
-        verticalLayout_4->addItem(verticalSpacer_3);
+        verticalLayout_4->addItem(verticalSpacer_2);
+
+        spIntegral = new QComboBox(centralwidget);
+        spIntegral->setObjectName("spIntegral");
+        spIntegral->setStyleSheet(QString::fromUtf8(""));
+
+        verticalLayout_4->addWidget(spIntegral);
+
+        label_5 = new QLabel(centralwidget);
+        label_5->setObjectName("label_5");
+        QFont font1;
+        font1.setPointSize(14);
+        label_5->setFont(font1);
+        label_5->setStyleSheet(QString::fromUtf8("background-color: #FCECC0;\n"
+"   	color: #F63D03;"));
+        label_5->setFrameShape(QFrame::Shape::WinPanel);
+        label_5->setFrameShadow(QFrame::Shadow::Plain);
+
+        verticalLayout_4->addWidget(label_5);
+
+        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+
+        verticalLayout_4->addItem(verticalSpacer);
 
         verticalLayout = new QVBoxLayout();
         verticalLayout->setObjectName("verticalLayout");
@@ -324,9 +366,9 @@ public:
 
         verticalLayout_4->addLayout(verticalLayout);
 
-        verticalSpacer_2 = new QSpacerItem(20, 20, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+        verticalSpacer_3 = new QSpacerItem(192, 13, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
 
-        verticalLayout_4->addItem(verticalSpacer_2);
+        verticalLayout_4->addItem(verticalSpacer_3);
 
         btnGraf = new QPushButton(centralwidget);
         btnGraf->setObjectName("btnGraf");
@@ -334,16 +376,11 @@ public:
 
         verticalLayout_4->addWidget(btnGraf);
 
-        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
-
-        verticalLayout_4->addItem(verticalSpacer);
-
         verticalLayout_4->setStretch(0, 1);
         verticalLayout_4->setStretch(1, 1);
         verticalLayout_4->setStretch(2, 1);
-        verticalLayout_4->setStretch(3, 1);
-        verticalLayout_4->setStretch(4, 1);
-        verticalLayout_4->setStretch(5, 20);
+        verticalLayout_4->setStretch(4, 10);
+        verticalLayout_4->setStretch(7, 1);
 
         horizontalLayout_4->addLayout(verticalLayout_4);
 
@@ -351,8 +388,6 @@ public:
         verticalLayout_2->setObjectName("verticalLayout_2");
         lblTextoFuncion = new QLabel(centralwidget);
         lblTextoFuncion->setObjectName("lblTextoFuncion");
-        QFont font1;
-        font1.setPointSize(14);
         lblTextoFuncion->setFont(font1);
         lblTextoFuncion->setAlignment(Qt::AlignmentFlag::AlignCenter);
 
@@ -376,7 +411,7 @@ public:
 
         horizontalLayout_4->addLayout(verticalLayout_2);
 
-        horizontalLayout_4->setStretch(1, 5);
+        horizontalLayout_4->setStretch(1, 10);
 
         horizontalLayout_5->addLayout(horizontalLayout_4);
 
@@ -422,6 +457,7 @@ public:
         label_3->setText(QCoreApplication::translate("MainWindow", "L\303\255mite Superior", nullptr));
         label_4->setText(QCoreApplication::translate("MainWindow", "Tama\303\261o de pase:", nullptr));
         label->setText(QCoreApplication::translate("MainWindow", "Funcion:", nullptr));
+        label_5->setText(QString());
         chkEjes->setText(QCoreApplication::translate("MainWindow", "Pintar Ejes    ", nullptr));
         chkEscala->setText(QCoreApplication::translate("MainWindow", "Pintar Escala", nullptr));
         chkRejilla->setText(QCoreApplication::translate("MainWindow", "Pintar Rejilla", nullptr));

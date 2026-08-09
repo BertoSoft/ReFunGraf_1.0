@@ -49,9 +49,24 @@ void MainWindow::initUi(){
     initBarraEstado();
     initReloj();
     initDsb();
+    initSp();
     lblTexto->setText("Representación Gráficas de Funciones V 1.0");
     desactivaControles();
     ui->actionGuardar->setEnabled(false);
+}
+
+void MainWindow::initSp(){
+    QStringList lista;
+
+    ui->spIntegral->addItem("Elige un Método Integral");
+    ui->spIntegral->addItem("Método Trapecio");
+    ui->spIntegral->addItem("Método Simpson");
+    ui->spIntegral->addItem("Método Simpson 3/8");
+    ui->spIntegral->addItem("Método Boole");
+
+    connect(ui->spIntegral, &QComboBox::currentIndexChanged, this, [this](int indice){
+        this->dibujaIntegral(indice);
+    });
 }
 
 void MainWindow::initBarraEstado(){
@@ -152,6 +167,7 @@ void MainWindow::activaControles(){
     ui->chkEscala->setEnabled(true);
     ui->chkRejilla->setEnabled(true);
     ui->lblGraf->setEnabled(true);
+    ui->spIntegral->setEnabled(true);
 }
 
 void MainWindow::desactivaControles(){
@@ -164,6 +180,7 @@ void MainWindow::desactivaControles(){
     ui->chkEscala->setEnabled(false);
     ui->chkRejilla->setEnabled(false);
     ui->lblGraf->setEnabled(false);
+    ui->spIntegral->setEnabled(false);
 }
 
 void MainWindow::limpiaControles(){
@@ -171,6 +188,7 @@ void MainWindow::limpiaControles(){
     ui->dsbInferior->setValue(0.0);
     ui->dsbSuperior->setValue(0.0);
     ui->dsbPaso->setValue(0.0);
+    ui->spIntegral->setCurrentIndex(0);
 }
 
 //
@@ -805,7 +823,7 @@ void MainWindow::dibujaCoordenadas(double pixelX, double pixelY){
         double valorY = m_yMin + ((alto - pixelY) / alto) * rangoY;
 
         // Define un margen de error (tolerancia) según la escala de tus datos
-        const double tolerancia = 5; // En pixeles de pantalla
+        const double tolerancia = 3; // En pixeles de pantalla
 
         // Si el raton esta encima de la funcion :
         for(const auto &p: m_datos){
@@ -849,4 +867,92 @@ void MainWindow::dibujaCoordenadas(double pixelX, double pixelY){
         }
     }
 }
+
+void MainWindow::dibujaIntegral(int indice){
+
+    switch (indice) {
+        case 0:
+            ui->spIntegral->setCurrentIndex(0);
+            break;
+        case 1:
+            calculaTrapecios();
+            break;
+        case 2:
+            calculaSimpson();
+            break;
+        case 3:
+            calculaSimpson38();
+            break;
+        case 4:
+            calculaBoole();
+            break;
+        default:
+            break;
+    }
+}
+
+void MainWindow::calculaTrapecios(){
+    double area = -1.0;
+    double ancho = ui->lblGraf->width();
+    double alto = ui->lblGraf->height();
+
+    auto mapearX = [=] (double x){
+        return static_cast<int>((x - m_xMin) / (m_xMax - m_xMin) * ancho);
+    };
+
+    auto mapearY = [=] (double y){
+        return static_cast<int>((m_yMax - y) / (m_yMax - m_yMin) * alto);
+    };
+
+    QPainter pintor(&m_pixmap);
+    pintor.setRenderHint(QPainter::Antialiasing);
+
+    // Configurar colores del sombreado (Verde semi-transparente)
+    pintor.setBrush(QColor(46, 125, 50, 60));
+    pintor.setPen(QPen(QColor(46, 125, 50, 150), 1, Qt::SolidLine));
+
+    int n = static_cast<int>((m_xMax - m_xMin) / ui->dsbPaso->value());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+void MainWindow::calculaSimpson(){
+
+}
+
+void MainWindow::calculaSimpson38(){
+
+}
+
+void MainWindow::calculaBoole(){
+
+}
+
 

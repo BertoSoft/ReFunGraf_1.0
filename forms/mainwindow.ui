@@ -42,6 +42,22 @@ QDialog {
         color: #000000;
 	}
 
+QComboBox {
+    background-color: #FCECC0; /* Tu color de fondo (ejemplo: morado de tu app) */
+    color: #F63D03;              /* Color del texto */
+    border: 1px solid #F63D03; /* Obligatorio: define un borde para activar el fondo */
+    border-radius: 4px;
+    padding: 4px 10px;
+}
+
+QComboBox QAbstractItemView {
+       background-color: #FCECC0;  /* Mismo color de fondo para la lista */
+       color: #F63D03;              /* Texto de la lista en color primario */
+       selection-background-color: #673AB7;  /* Fondo morado al seleccionar un elemento */
+       selection-color: white;    /* Texto blanco para el elemento seleccionado */
+       border: 1px solid #673AB7;
+    }
+
     /* Barra de estado con fondo crema unificado */
     QStatusBar {
         background-color: #FCECC0;
@@ -110,9 +126,9 @@ QToolBar QToolButton:pressed, QToolBar QToolButton:checked {
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_5">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,5">
+     <layout class="QHBoxLayout" name="horizontalLayout_4" stretch="0,10">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1,1,1,1,1,20">
+       <layout class="QVBoxLayout" name="verticalLayout_4" stretch="1,1,1,0,10,0,0,1">
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,0,0,0,0,0,0,0">
           <item>
@@ -183,7 +199,49 @@ QToolBar QToolButton:pressed, QToolBar QToolButton:checked {
          </layout>
         </item>
         <item>
-         <spacer name="verticalSpacer_3">
+         <spacer name="verticalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Orientation::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>192</width>
+            <height>13</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QComboBox" name="spIntegral">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_5">
+          <property name="font">
+           <font>
+            <pointsize>14</pointsize>
+           </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">background-color: #FCECC0;
+   	color: #F63D03;</string>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::Shape::WinPanel</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Shadow::Plain</enum>
+          </property>
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="verticalSpacer">
           <property name="orientation">
            <enum>Qt::Orientation::Vertical</enum>
           </property>
@@ -314,14 +372,14 @@ color:#000000;
          </layout>
         </item>
         <item>
-         <spacer name="verticalSpacer_2">
+         <spacer name="verticalSpacer_3">
           <property name="orientation">
            <enum>Qt::Orientation::Vertical</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>20</width>
-            <height>20</height>
+            <width>192</width>
+            <height>13</height>
            </size>
           </property>
          </spacer>
@@ -338,19 +396,6 @@ color:#000000;
            <string>Dibujar Gráfica</string>
           </property>
          </widget>
-        </item>
-        <item>
-         <spacer name="verticalSpacer">
-          <property name="orientation">
-           <enum>Qt::Orientation::Vertical</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>20</width>
-            <height>40</height>
-           </size>
-          </property>
-         </spacer>
         </item>
        </layout>
       </item>
