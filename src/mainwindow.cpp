@@ -207,7 +207,7 @@ void MainWindow::on_btnGraf_clicked(){
     //Borramos la lblGraf
     ui->lblGraf->clear();
 
-    m_datos = procesaFuncion();
+    m_datos = procesaFuncion(ui->dsbPaso->value());
     if(!m_datos.isEmpty()){
         QPixmap miPixMap = dibujaEjes(m_datos);
         dibujaFuncion(m_datos, miPixMap);
@@ -229,19 +229,19 @@ void MainWindow::on_btnGraf_clicked(){
 }
 
 void MainWindow::on_chkEjes_clicked(){
-    QList<QPointF> datos =procesaFuncion();
+    QList<QPointF> datos =procesaFuncion(ui->dsbPaso->value());
     QPixmap miPixmap = dibujaEjes(datos);
     dibujaFuncion(datos, miPixmap);
 }
 
 void MainWindow::on_chkEscala_clicked(){
-    QList<QPointF> datos =procesaFuncion();
+    QList<QPointF> datos =procesaFuncion(ui->dsbPaso->value());
     QPixmap miPixmap = dibujaEjes(datos);
     dibujaFuncion(datos, miPixmap);
 }
 
 void MainWindow::on_chkRejilla_clicked(){
-    QList<QPointF> datos =procesaFuncion();
+    QList<QPointF> datos =procesaFuncion(ui->dsbPaso->value());
     QPixmap miPixmap = dibujaEjes(datos);
     dibujaFuncion(datos, miPixmap);
 }
@@ -483,7 +483,7 @@ void MainWindow::abrirFuncion(){
 }
 
 void MainWindow::guardarFuncion(){
-    QList<QPointF> datos = procesaFuncion();
+    QList<QPointF> datos = procesaFuncion(ui->dsbPaso->value());
     if(datos.isEmpty()){
         return;
     }
@@ -606,7 +606,7 @@ double MainWindow::minFuncion(QList<QPointF> datos){
     return dMin;
 }
 
-QList<QPointF> MainWindow::procesaFuncion(){
+QList<QPointF> MainWindow::procesaFuncion(double paso){
     QList<QPointF> datos;
 
     if(ui->etFuncion->text().trimmed().isEmpty()){
@@ -623,7 +623,6 @@ QList<QPointF> MainWindow::procesaFuncion(){
     strFuncion.replace('.', ',');
     double xMax = ui->dsbSuperior->value();
     double xMin = ui->dsbInferior->value();
-    double paso = ui->dsbPaso->value();
 
     strFuncion.replace('.', ',');
 
@@ -902,6 +901,7 @@ void MainWindow::dibujaIntegral(int indice){
 
     switch (indice) {
         case 0:
+            dibujaFuncion(m_datos, dibujaEjes(m_datos));
             ui->spIntegral->setCurrentIndex(0);
             break;
         case 1:
@@ -934,9 +934,6 @@ void MainWindow::calculaTrapecios(){
         return ((m_yMax - y) / (m_yMax - m_yMin)) * alto;
     };
 
-    bool tmp = m_pixmap.isNull();
-
-
     QPixmap miPixmap = m_pixmapIntegral;
     QPainter pintor(&miPixmap);
     pintor.setRenderHint(QPainter::Antialiasing);
@@ -950,11 +947,25 @@ void MainWindow::calculaTrapecios(){
     if (pixelOrigenY < 0) pixelOrigenY = 0.0;
     if (pixelOrigenY > alto) pixelOrigenY = alto;
 
-    for(int i =0; i < m_datos.size() -1; i++){
-        double x0 = m_datos[i].x();
-        double x1 = m_datos[i+1].x();
-        double y0 = m_datos[i].y();
-        double y1 = m_datos[i+1].y();
+
+
+
+
+    double paso = 0.5;
+    QList<QPointF> datos = procesaFuncion(paso);
+
+
+
+
+
+
+
+    for(int i =0; i < datos.size() -1; i++){
+        double x0 = datos[i].x();
+        double y0 = datos[i].y();
+
+        double x1 = datos[i+1].x();
+        double y1 = datos[i+1].y();
 
         // CORRECCIÓN DEFINITIVA: Filtro de seguridad + Umbral Anti-Asíntotas
         // Si el valor absoluto de Y supera las 100,000 unidades, asumimos que es un pico de infinito inestable.
@@ -991,6 +1002,43 @@ void MainWindow::calculaTrapecios(){
         pintor.setPen(Qt::NoPen); // Quitar borde al trapecio para que el relleno sea homogéneo
         pintor.drawPolygon(trapecioVisual); 
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //ahora pintamos la funcion original por encima
+    pintor.setPen(Config::colorPrimario); // Quitar borde al trapecio para que el relleno sea homogéneo
+
+    for(const auto &p: m_datos){
+        double pixelX = ((p.x() - m_xMin) / m_xMax - m_xMin) * ancho;
+        double pixelY = alto - (((p.y() - m_yMin) / (m_yMax - m_yMin)) * alto);
+
+        pintor.drawPoint(pixelX, pixelY);
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
     pintor.end();
 
     // CORRECCIÓN CRÍTICA 3: Sincronizar simultáneamente el buffer integral y la visualización de la UI

@@ -59,7 +59,7 @@ private:
     void nuevaFuncion();
     void abrirFuncion();
     void guardarFuncion();
-    QList<QPointF> procesaFuncion();
+    QList<QPointF> procesaFuncion(double paso);
     QPixmap dibujaEjes(QList<QPointF> datos);
     void dibujaFuncion(QList<QPointF> datos, QPixmap lienzo);
     void dibujaCoordenadas(double x, double y);
