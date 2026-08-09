@@ -88,7 +88,8 @@ private:
     double          m_xMax = 0.0;            // Límite máximo real en X
     double          m_yMin = 0.0;            // Valor mínimo real en Y (calculado)
     double          m_yMax = 0.0;            // Valor máximo real en Y (calculado
-    QPixmap         m_pixmap;
+    QPixmap         m_pixmap;                // PIxmap sin integral
+    QPixmap         m_pixmapIntegral;        // Pixmap con integral
 
 private:
     Ui::MainWindow *ui;

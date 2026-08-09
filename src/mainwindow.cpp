@@ -211,13 +211,21 @@ void MainWindow::on_btnGraf_clicked(){
     if(!m_datos.isEmpty()){
         QPixmap miPixMap = dibujaEjes(m_datos);
         dibujaFuncion(m_datos, miPixMap);
+
+        //AL FINAL: Si hay un método integral seleccionado, se calcula e itera.
+        // Como dibujaFuncion ya guardó m_pixmap de forma segura, calculaTrapecios()
+        // encontrará la gráfica lista y pintará el verde encima a la primera.
+        int indiceMetodo = ui->spIntegral->currentIndex();
+        if (indiceMetodo > 0) {
+            dibujaIntegral(indiceMetodo);
+        }
+
         ui->lblGraf->setFocus();
         str = "Representando la función: ";
         str.append(ui->etFuncion->text());
         lblTexto->setText(str);
         ui->actionGuardar->setEnabled(true);
     }
-
 }
 
 void MainWindow::on_chkEjes_clicked(){
@@ -329,6 +337,22 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev){
             QLineEdit *le = spinBox->findChild<QLineEdit*>();
             if (le) { // CORREGIDO: Protección crítica contra puntero nulo (Anti-Crash)
                 QTimer::singleShot(0, le, [le]() { le->deselect(); });
+            }
+        }
+    }
+
+    // ==========================================
+    // SECCIÓN: Resize (Cambio de Tamaño)
+    // ==========================================
+    if(ev->type() == QEvent::Resize){
+
+        if(obj == ui->lblGraf){
+            if(!m_datos.isEmpty()){
+                QPixmap tmp = dibujaEjes(m_datos);
+                dibujaFuncion(m_datos, tmp);
+                if(ui->spIntegral->currentIndex()>0){
+                    dibujaIntegral(ui->spIntegral->currentIndex());
+                }
             }
         }
     }
@@ -727,10 +751,6 @@ QPixmap MainWindow::dibujaEjes(QList<QPointF> datos){
         for(double x = xMin; x <= xMax; x += pasoRejillaX){
             if(std::abs(x) < (pasoRejillaX / 2)) continue;
             int px = mapearX(x);
-
-            QString tmp = QString::number(x);
-
-
             painter.drawLine(px , origenY - 10, px, origenY + 10);
             painter.drawText(px - 10, textoY,  QString::number(x, 'g', 3));
         }
@@ -788,9 +808,9 @@ void MainWindow::dibujaFuncion(QList<QPointF> datos, QPixmap miPixmap){
     QPen penPuntos(Config::colorPrimario, 1);
     painter.setPen(penPuntos);
 
-    double pixelXOld = m_datos[0].x();
-    double pixelYOld = m_datos[0].y();
-    for(const auto &p: m_datos){
+    double pixelXOld = ((datos[0].x() - m_xMin) / rangoX) * ancho;
+    double pixelYOld = alto - (((datos[0].y() - m_yMin) / rangoY) * alto);
+    for(const auto &p: datos){
         double pixelX = ((p.x() - m_xMin) / rangoX) * ancho;
         double pixelY = alto - (((p.y() - m_yMin) / rangoY) * alto);
 
@@ -803,6 +823,7 @@ void MainWindow::dibujaFuncion(QList<QPointF> datos, QPixmap miPixmap){
 
     // 6. Asignar el Pixmap pintado al QLabel de la interfaz de usuario y al pixmap miembro
     m_pixmap = miPixmap;
+    m_pixmapIntegral = miPixmap;
     ui->lblGraf->setPixmap(miPixmap);
 }
 
@@ -811,19 +832,27 @@ void MainWindow::dibujaCoordenadas(double pixelX, double pixelY){
     int ancho = ui->lblGraf->width();
     int alto = ui->lblGraf->height();
 
+    // NOTA DE PROTECCIÓN: recalculamos dinámicamente yMin e yMax de forma exacta a dibujaEjes()
+    double yMax = maxFuncion(m_datos);
+    double yMin = minFuncion(m_datos);
+
+    if (qFuzzyCompare(yMin, yMax)) {
+        yMax++;
+        yMin--;
+    }
+
     double rangoX = (qFuzzyCompare(m_xMax, m_xMin)) ? 1.0 : (m_xMax - m_xMin);
     double rangoY = (qFuzzyCompare(m_yMax, m_yMin)) ? 1.0 : (m_yMax - m_yMin);
-
 
     //Asegurarse de que los pixeles esten entre los limites
     if(pixelX >= 0 && pixelX <= ancho && pixelY >= 0 && pixelY <= alto){
 
-        //CONVERSIÓN INVERSA: De píxeles de pantalla a coordenadas matemáticas (X, Y)
+        // CONVERSIÓN INVERSA EXACTA: Mapeo milimétrico de píxeles a unidades matemáticas
         double valorX = m_xMin + (pixelX / ancho) * rangoX;
-        double valorY = m_yMin + ((alto - pixelY) / alto) * rangoY;
+        double valorY = yMax - (pixelY / alto) * rangoY; // CORREGIDO: Origen superior izquierdo de Qt calibrado
 
-        // Define un margen de error (tolerancia) según la escala de tus datos
-        const double tolerancia = 3; // En pixeles de pantalla
+        // Tolerancia de captura en píxeles (puedes aumentarla a 5 o 6 si usas pantallas High-DPI)
+        const double tolerancia = 5.0;
 
         // Si el raton esta encima de la funcion :
         for(const auto &p: m_datos){
@@ -836,12 +865,13 @@ void MainWindow::dibujaCoordenadas(double pixelX, double pixelY){
             double distancia = std::hypot(pixelX - pX, pixelY - pY);
 
             if(distancia <= tolerancia){
-                QString str = "x = ";
-                str.append(QString::number(valorX));
-                str.append("    y = ");
-                str.append(QString::number(valorY));
 
-                QPixmap pixmapTexto = m_pixmap;
+                // Formateamos los números flotantes con un límite legible de 3 decimales
+                QString str = QString("x = %1   y = %2")
+                                  .arg(QString::number(p.x(), 'f', 3),
+                                       QString::number(p.y(), 'f', 3)); // CORREGIDO: Muestra el punto exacto del vector
+
+                QPixmap pixmapTexto = m_pixmapIntegral;
                 QPainter painter(&pixmapTexto);
 
                 // Configurar fuente y color
@@ -863,7 +893,7 @@ void MainWindow::dibujaCoordenadas(double pixelX, double pixelY){
                 ui->lblGraf->setPixmap(pixmapTexto);
                 break;
             }
-            ui->lblGraf->setPixmap(m_pixmap);
+            ui->lblGraf->setPixmap(m_pixmapIntegral);
         }
     }
 }
@@ -892,18 +922,22 @@ void MainWindow::dibujaIntegral(int indice){
 }
 
 void MainWindow::calculaTrapecios(){
-    double area = -1.0;
+    double area = 0.0;
     double ancho = ui->lblGraf->width();
     double alto = ui->lblGraf->height();
 
     auto mapearX = [=] (double x){
-        return static_cast<int>((x - m_xMin) / (m_xMax - m_xMin) * ancho);
+        return ((x - m_xMin) / (m_xMax - m_xMin)) * ancho;
     };
 
     auto mapearY = [=] (double y){
-        return static_cast<int>((m_yMax - y) / (m_yMax - m_yMin) * alto);
+        return ((m_yMax - y) / (m_yMax - m_yMin)) * alto;
     };
-    QPixmap miPixmap = m_pixmap;
+
+    bool tmp = m_pixmap.isNull();
+
+
+    QPixmap miPixmap = m_pixmapIntegral;
     QPainter pintor(&miPixmap);
     pintor.setRenderHint(QPainter::Antialiasing);
 
@@ -912,8 +946,8 @@ void MainWindow::calculaTrapecios(){
     pintor.setPen(QPen(QColor(46, 125, 50, 150), 1, Qt::SolidLine));
 
     // CORRECCIÓN 3: Limitar de forma segura la base del trapecio (el eje Y = 0) dentro del recuadro visual
-    int pixelOrigenY = mapearY(0);
-    if (pixelOrigenY < 0) pixelOrigenY = 0;
+    int pixelOrigenY = mapearY(0.0);
+    if (pixelOrigenY < 0) pixelOrigenY = 0.0;
     if (pixelOrigenY > alto) pixelOrigenY = alto;
 
     for(int i =0; i < m_datos.size() -1; i++){
@@ -921,6 +955,16 @@ void MainWindow::calculaTrapecios(){
         double x1 = m_datos[i+1].x();
         double y0 = m_datos[i].y();
         double y1 = m_datos[i+1].y();
+
+        // CORRECCIÓN DEFINITIVA: Filtro de seguridad + Umbral Anti-Asíntotas
+        // Si el valor absoluto de Y supera las 100,000 unidades, asumimos que es un pico de infinito inestable.
+        const double UMBRAL_ASINTOTA = 100000.0;
+
+        if (std::isnan(y0) || std::isinf(y0) || std::abs(y0) > UMBRAL_ASINTOTA ||
+            std::isnan(y1) || std::isinf(y1) || std::abs(y1) > UMBRAL_ASINTOTA)
+        {
+            continue; // Saltamos el trapecio que roza el abismo/infinito de la asíntota
+        }
 
         // Calculamos el h de este intervalo para admitir máxima precisión ante cualquier desborde o redondeo
         double h_local = x1 - x0;
@@ -933,8 +977,10 @@ void MainWindow::calculaTrapecios(){
         double pixelX1 = mapearX(x1);
         double pixelY0 = mapearY(y0);
         double pixelY1 = mapearY(y1);
-        double pixelOrigenX = mapearX(0);
-        double pixelOrigenY = mapearY(0);
+
+        // CORRECCIÓN CRÍTICA 2: Validar que los píxeles calculados no se desborden de la pantalla por culpa del pico de 1/x
+        if(pixelY0 < 0.0) pixelY0 = 0.0; if(pixelY0 > alto) pixelY0 = alto;
+        if(pixelY1 < 0.0) pixelY1 = 0.0; if(pixelY1 > alto) pixelY1 = alto;
 
         QPolygonF trapecioVisual;
         trapecioVisual << QPointF(pixelX0, pixelOrigenY)   // Esquina inferior izquierda (en el eje)
@@ -943,22 +989,16 @@ void MainWindow::calculaTrapecios(){
                        << QPointF(pixelX1, pixelOrigenY); // Esquina inferior derecha (en el eje)
 
         pintor.setPen(Qt::NoPen); // Quitar borde al trapecio para que el relleno sea homogéneo
-        pintor.drawPolygon(trapecioVisual);
-
-
-
+        pintor.drawPolygon(trapecioVisual); 
     }
-
-
     pintor.end();
 
-    // Asignar el Pixmap pintado al QLabel de la interfaz
-    ui->lblGraf->setPixmap(miPixmap);
+    // CORRECCIÓN CRÍTICA 3: Sincronizar simultáneamente el buffer integral y la visualización de la UI
+    m_pixmapIntegral = miPixmap;
+    ui->lblGraf->setPixmap(m_pixmapIntegral);
 
-    QString str = "Area = ";
-    str.append(QString::number(area));
-    str.append(" Unidades.");
-    ui->lblIntegral->setText(str);
+    // Formateo de cadena más eficiente con sintaxis moderna de Qt
+    ui->lblIntegral->setText(QString("Área = %1 Unidades.").arg(QString::number(area, 'f', 6)));
 }
 
 void MainWindow::calculaSimpson(){
