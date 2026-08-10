@@ -224,6 +224,8 @@ void MainWindow::on_btnGraf_clicked(){
         ui->lblGraf->setFocus();
         lblTexto->setText(str);
         ui->actionGuardar->setEnabled(true);
+        ui->spIntegral->setEnabled(true);
+        ui->dsbIntervalos->setEnabled(true);
     }
 }
 
@@ -263,7 +265,7 @@ void MainWindow::on_spIntegral_activated(int index){
         calculaTrapecios();
         break;
     case 2:
-
+        calculaSimpson();
         break;
     case 3:
 
@@ -404,6 +406,7 @@ void MainWindow::salir(){
 
 void MainWindow::nuevaFuncion(){
     activaControles();
+    ui->spIntegral->setEnabled(false);
     ui->dsbInferior->setFocus();
 }
 
@@ -910,6 +913,7 @@ void MainWindow::dibujaIntegral(int indice){
             break;
         case 2:
             calculaSimpson();
+            ui->dsbIntervalos->setEnabled(true);
             break;
         case 3:
             calculaSimpson38();
@@ -994,41 +998,121 @@ void MainWindow::calculaTrapecios(){
         pintor.drawPolygon(trapecioVisual); 
     }
 
+    pintor.end();
 
+    // CORRECCIÓN CRÍTICA 3: Sincronizar simultáneamente el buffer integral y la visualización de la UI
+    m_pixmapIntegral = miPixmap;
+    ui->lblGraf->setPixmap(m_pixmapIntegral);
 
+    // Formateo de cadena más eficiente con sintaxis moderna de Qt
+    ui->lblIntegral->setText(QString("Área = %1 Uds.").arg(QString::number(area, 'f', 6)));
+}
 
+void MainWindow::calculaSimpson(){
+    double area     = 0.0;
+    double ancho    = ui->lblGraf->width();
+    double alto     = ui->lblGraf->height();
+    int intervalos  = ui->dsbIntervalos->value();
 
-
-
-
-
-
-
-
-
-
-
-    //ahora pintamos la funcion original por encima
-    pintor.setPen(Config::colorPrimario); // Quitar borde al trapecio para que el relleno sea homogéneo
-
-    for(const auto &p: m_datos){
-        double pixelX = ((p.x() - m_xMin) / m_xMax - m_xMin) * ancho;
-        double pixelY = alto - (((p.y() - m_yMin) / (m_yMax - m_yMin)) * alto);
-
-        pintor.drawPoint(pixelX, pixelY);
-
+    if(intervalos %2 != 0){
+        QMessageBox::warning(
+            this,
+            Config::APP_NAME,
+            "El número de Intervalos ha de ser par."
+            );
+        ui->dsbIntervalos->setFocus();
+        return;
     }
 
+    auto mapearX = [=] (double x){
+        return ((x - m_xMin) / (m_xMax - m_xMin)) * ancho;
+    };
 
+    auto mapearY = [=] (double y){
+        return ((m_yMax - y) / (m_yMax - m_yMin)) * alto;
+    };
 
+    // Pintamos la grafica
+    QPixmap miPixmap = m_pixmap;
+    QPainter pintor(&miPixmap);
+    pintor.setRenderHint(QPainter::Antialiasing);
 
+    // CORRECCIÓN 3: Limitar de forma segura la base del trapecio (el eje Y = 0) dentro del recuadro visual
+    int pixelOrigenY = mapearY(0.0);
+    if (pixelOrigenY < 0) pixelOrigenY = 0.0;
+    if (pixelOrigenY > alto) pixelOrigenY = alto;
 
+    QList<QPointF> datos = procesaFuncion(ui->dsbIntervalos->value());
 
+    double h = (m_datos.last().x() - m_datos.first().x()) / intervalos;
+    double suma = (datos.first().y() + datos.last().y());
 
+    for(int i = 1; i < intervalos; i++){
 
+        // Calculo Numerico
+        if(i%2 == 0){
+            suma += 2 * (datos[i].y());
+        }
+        else{
+            suma += 4 * (datos[i].y());
+        }
 
+        // =========================================================================
+        // --- RENDERIZADO GRÁFICO DE INTERVALOS DE SIMPSON MEDIANTE POLÍGONOS PARABÓLICOS ---
+        // =========================================================================
 
+        // Configurar el color de relleno y bordes para cada "bloque" de Simpson
+        // Usamos colores alternos para que se distingan claramente los intervalos dobles
+        QColor colorBloqueA(0, 200, 100, 125);  // Azul claro
+        QColor colorBloqueB(0, 200, 100, 125);  // Verde claro
 
+        // El método de Simpson junta los intervalos de dos en dos (parábolas)
+        // Aseguramos que existan los 3 puntos necesarios para definir la parábola
+        if(i + 2 >= datos.size()) break;
+        QPointF p0 = datos[i];     // Extremo izquierdo
+        QPointF p1 = datos[i+1];   // Punto medio
+        QPointF p2 = datos[i+2];   // Extremo derecho
+
+        // --- Interpolación Parabólica de Lagrange ---
+        // Encontramos la ecuación y = Ax² + Bx + C que pasa exactamente por p0, p1 y p2
+        double x0 = p0.x(), y0 = p0.y();
+        double x1 = p1.x(), y1 = p1.y();
+        double x2 = p2.x(), y2 = p2.y();
+
+        double denominador = (x0 - x1) * (x0 - x2) * (x1 - x2);
+
+        double A = (x2 * (y1 - y0) + x1 * (y0 - y2) + x0 * (y2 - y1)) / denominador;
+        double B = (x2*x2 * (y0 - y1) + x1*x1 * (y2 - y0) + x0*x0 * (y1 - y2)) / denominador;
+        double C = (x1 * x2 * (x1 - x2) * y0 + x2 * x0 * (x2 - x0) * y1 + x0 * x1 * (x0 - x1) * y2) / denominador;
+
+        // --- Construcción del Polígono Aproximado ---
+        QPolygonF poligonoParabolico;
+
+        // 1. Empezamos en la base del eje Y=0 (extremo izquierdo)
+        poligonoParabolico << QPointF(mapearX(x0), pixelOrigenY);
+
+        // 2. Generamos puntos intermedios sobre la parábola aproximada para que se vea curva suave
+        // (Aunque tengamos solo 4 intervalos, el techo de la parábola se dibujará curvo)
+        int resolucionCurva = 20;
+        double pasoInterpolacion = (x2 - x0) / resolucionCurva;
+
+        for(int k = 0; k <= resolucionCurva; ++k) {
+            double curX = x0 + k * pasoInterpolacion;
+            double curY = A * curX * curX + B * curX + C; // Evaluación en la parábola de Simpson
+            poligonoParabolico << QPointF(mapearX(curX), mapearY(curY));
+        }
+
+        // 3. Bajamos a la base del eje Y=0 (extremo derecho)
+        poligonoParabolico << QPointF(mapearX(x2), pixelOrigenY);
+
+        // --- Dibujar el polígono ---
+        // Alternamos el color para que el usuario diferencie el Intervalo 1-2 del Intervalo 3-4
+        pintor.setBrush(QBrush((i / 2) % 2 == 0 ? colorBloqueA : colorBloqueB));
+        pintor.setPen(QPen(Qt::darkGray, 1, Qt::SolidLine)); // Línea que delimita el polígono
+
+        pintor.drawPolygon(poligonoParabolico);
+    }
+    area = (h / 3) * suma;
 
     pintor.end();
 
@@ -1037,10 +1121,7 @@ void MainWindow::calculaTrapecios(){
     ui->lblGraf->setPixmap(m_pixmapIntegral);
 
     // Formateo de cadena más eficiente con sintaxis moderna de Qt
-    ui->lblIntegral->setText(QString("Área = %1 Unidades.").arg(QString::number(area, 'f', 6)));
-}
-
-void MainWindow::calculaSimpson(){
+    ui->lblIntegral->setText(QString("Área = %1 Uds.").arg(QString::number(area, 'f', 6)));
 
 }
 

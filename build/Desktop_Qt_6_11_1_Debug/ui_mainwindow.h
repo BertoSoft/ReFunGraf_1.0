@@ -54,6 +54,8 @@ public:
     QLabel *label_4;
     QDoubleSpinBox *dsbIntervalos;
     QSpacerItem *verticalSpacer_4;
+    QPushButton *btnGraf;
+    QSpacerItem *verticalSpacer_3;
     QLabel *lblIntegral;
     QSpacerItem *verticalSpacer;
     QVBoxLayout *verticalLayout;
@@ -66,8 +68,6 @@ public:
     QHBoxLayout *horizontalLayout_3;
     QRadioButton *chkRejilla;
     QSpacerItem *horizontalSpacer_3;
-    QSpacerItem *verticalSpacer_3;
-    QPushButton *btnGraf;
     QVBoxLayout *verticalLayout_2;
     QLabel *lblTextoFuncion;
     QLabel *lblGraf;
@@ -290,6 +290,16 @@ public:
 
         verticalLayout_5->addItem(verticalSpacer_4);
 
+        btnGraf = new QPushButton(centralwidget);
+        btnGraf->setObjectName("btnGraf");
+        btnGraf->setMinimumSize(QSize(0, 35));
+
+        verticalLayout_5->addWidget(btnGraf);
+
+        verticalSpacer_3 = new QSpacerItem(192, 13, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+
+        verticalLayout_5->addItem(verticalSpacer_3);
+
         lblIntegral = new QLabel(centralwidget);
         lblIntegral->setObjectName("lblIntegral");
         QFont font1;
@@ -377,24 +387,12 @@ public:
 
         verticalLayout_5->addLayout(verticalLayout);
 
-        verticalSpacer_3 = new QSpacerItem(192, 13, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
-
-        verticalLayout_5->addItem(verticalSpacer_3);
-
-        btnGraf = new QPushButton(centralwidget);
-        btnGraf->setObjectName("btnGraf");
-        btnGraf->setMinimumSize(QSize(0, 35));
-
-        verticalLayout_5->addWidget(btnGraf);
-
         verticalLayout_5->setStretch(0, 1);
         verticalLayout_5->setStretch(1, 1);
         verticalLayout_5->setStretch(2, 1);
         verticalLayout_5->setStretch(3, 1);
-        verticalLayout_5->setStretch(4, 1);
-        verticalLayout_5->setStretch(5, 10);
         verticalLayout_5->setStretch(6, 1);
-        verticalLayout_5->setStretch(7, 1);
+        verticalLayout_5->setStretch(7, 10);
         verticalLayout_5->setStretch(8, 1);
 
         horizontalLayout_4->addLayout(verticalLayout_5);
@@ -473,11 +471,11 @@ public:
         label_3->setText(QCoreApplication::translate("MainWindow", "L\303\255mite Superior", nullptr));
         label->setText(QCoreApplication::translate("MainWindow", "Funcion:", nullptr));
         label_4->setText(QCoreApplication::translate("MainWindow", "Numero Intervalos.", nullptr));
+        btnGraf->setText(QCoreApplication::translate("MainWindow", "Dibujar Gr\303\241fica", nullptr));
         lblIntegral->setText(QString());
         chkEjes->setText(QCoreApplication::translate("MainWindow", "Pintar Ejes    ", nullptr));
         chkEscala->setText(QCoreApplication::translate("MainWindow", "Pintar Escala", nullptr));
         chkRejilla->setText(QCoreApplication::translate("MainWindow", "Pintar Rejilla", nullptr));
-        btnGraf->setText(QCoreApplication::translate("MainWindow", "Dibujar Gr\303\241fica", nullptr));
         lblTextoFuncion->setText(QCoreApplication::translate("MainWindow", "Representaci\303\263n gr\303\241fica de la funci\303\263n ", nullptr));
         lblGraf->setText(QString());
         menuArchivo->setTitle(QCoreApplication::translate("MainWindow", "Archivo", nullptr));
