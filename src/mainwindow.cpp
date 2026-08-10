@@ -1009,120 +1009,93 @@ void MainWindow::calculaTrapecios(){
 }
 
 void MainWindow::calculaSimpson(){
-    double area     = 0.0;
-    double ancho    = ui->lblGraf->width();
-    double alto     = ui->lblGraf->height();
-    int intervalos  = ui->dsbIntervalos->value();
-
-    if(intervalos %2 != 0){
-        QMessageBox::warning(
-            this,
-            Config::APP_NAME,
-            "El número de Intervalos ha de ser par."
-            );
+    int intervalos = ui->dsbIntervalos->value();
+    if (intervalos % 2 != 0) {
+        QMessageBox::warning(this, Config::APP_NAME, "El número de Intervalos ha de ser par.");
         ui->dsbIntervalos->setFocus();
         return;
     }
 
-    auto mapearX = [=] (double x){
-        return ((x - m_xMin) / (m_xMax - m_xMin)) * ancho;
-    };
+    double ancho = ui->lblGraf->width();
+    double alto  = ui->lblGraf->height();
 
-    auto mapearY = [=] (double y){
-        return ((m_yMax - y) / (m_yMax - m_yMin)) * alto;
-    };
+    // Lambdas de mapeo optimizadas
+    auto mapearX = [=](double x) { return ((x - m_xMin) / (m_xMax - m_xMin)) * ancho; };
+    auto mapearY = [=](double y) { return ((m_yMax - y) / (m_yMax - m_yMin)) * alto; };
+    int pixelOrigenY = std::clamp(static_cast<int>(mapearY(0.0)), 0, static_cast<int>(alto));
 
-    // Pintamos la grafica
+    QList<QPointF> datos = procesaFuncion(intervalos);
+    if (datos.size() < intervalos + 1) return;
+
+    // --- 1. CÁLCULO NUMÉRICO SIMPLIFICADO ---
+    double h = (datos.last().x() - datos.first().x()) / intervalos;
+    double suma = datos.first().y() + datos.last().y();
+
+    for (int i = 1; i < intervalos; ++i) {
+
+        // CORRECCIÓN DEFINITIVA: Filtro de seguridad + Umbral Anti-Asíntotas
+        // Si el valor absoluto de Y supera las 100,000 unidades, asumimos que es un pico de infinito inestable.
+        const double UMBRAL_ASINTOTA = 100000.0;
+
+        if (std::isnan(datos[i].y()) || std::isinf(datos[i].y()) || std::abs(datos[i].y()) > UMBRAL_ASINTOTA)
+        {
+            continue; // Saltamos el trapecio que roza el abismo/infinito de la asíntota
+        }
+
+        suma += (i % 2 == 0 ? 2.0 : 4.0) * datos[i].y();
+    }
+    double area = (h / 3.0) * suma;
+
+    // --- 2. RENDERIZADO GRÁFICO (Bucle dedicado de 2 en 2) ---
     QPixmap miPixmap = m_pixmap;
     QPainter pintor(&miPixmap);
     pintor.setRenderHint(QPainter::Antialiasing);
+    pintor.setPen(QPen(Qt::lightGray, 1));
 
-    // CORRECCIÓN 3: Limitar de forma segura la base del trapecio (el eje Y = 0) dentro del recuadro visual
-    int pixelOrigenY = mapearY(0.0);
-    if (pixelOrigenY < 0) pixelOrigenY = 0.0;
-    if (pixelOrigenY > alto) pixelOrigenY = alto;
+    QColor colores[2] = { QColor(127, 127, 0, 125), QColor(0, 127, 127, 125) }; // Azul y Verde alternos
 
-    QList<QPointF> datos = procesaFuncion(ui->dsbIntervalos->value());
+    for (int i = 0; i < intervalos; i += 2) {
+        double x0 = datos[i].x(),   y0 = datos[i].y();
+        double x1 = datos[i+1].x(), y1 = datos[i+1].y();
+        double x2 = datos[i+2].x(), y2 = datos[i+2].y();
 
-    double h = (m_datos.last().x() - m_datos.first().x()) / intervalos;
-    double suma = (datos.first().y() + datos.last().y());
+        // CORRECCIÓN DEFINITIVA: Filtro de seguridad + Umbral Anti-Asíntotas
+        // Si el valor absoluto de Y supera las 100,000 unidades, asumimos que es un pico de infinito inestable.
+        const double UMBRAL_ASINTOTA = 100000.0;
 
-    for(int i = 1; i < intervalos; i++){
-
-        // Calculo Numerico
-        if(i%2 == 0){
-            suma += 2 * (datos[i].y());
-        }
-        else{
-            suma += 4 * (datos[i].y());
-        }
-
-        // =========================================================================
-        // --- RENDERIZADO GRÁFICO DE INTERVALOS DE SIMPSON MEDIANTE POLÍGONOS PARABÓLICOS ---
-        // =========================================================================
-
-        // Configurar el color de relleno y bordes para cada "bloque" de Simpson
-        // Usamos colores alternos para que se distingan claramente los intervalos dobles
-        QColor colorBloqueA(0, 200, 100, 125);  // Azul claro
-        QColor colorBloqueB(0, 200, 100, 125);  // Verde claro
-
-        // El método de Simpson junta los intervalos de dos en dos (parábolas)
-        // Aseguramos que existan los 3 puntos necesarios para definir la parábola
-        if(i + 2 >= datos.size()) break;
-        QPointF p0 = datos[i];     // Extremo izquierdo
-        QPointF p1 = datos[i+1];   // Punto medio
-        QPointF p2 = datos[i+2];   // Extremo derecho
-
-        // --- Interpolación Parabólica de Lagrange ---
-        // Encontramos la ecuación y = Ax² + Bx + C que pasa exactamente por p0, p1 y p2
-        double x0 = p0.x(), y0 = p0.y();
-        double x1 = p1.x(), y1 = p1.y();
-        double x2 = p2.x(), y2 = p2.y();
-
-        double denominador = (x0 - x1) * (x0 - x2) * (x1 - x2);
-
-        double A = (x2 * (y1 - y0) + x1 * (y0 - y2) + x0 * (y2 - y1)) / denominador;
-        double B = (x2*x2 * (y0 - y1) + x1*x1 * (y2 - y0) + x0*x0 * (y1 - y2)) / denominador;
-        double C = (x1 * x2 * (x1 - x2) * y0 + x2 * x0 * (x2 - x0) * y1 + x0 * x1 * (x0 - x1) * y2) / denominador;
-
-        // --- Construcción del Polígono Aproximado ---
-        QPolygonF poligonoParabolico;
-
-        // 1. Empezamos en la base del eje Y=0 (extremo izquierdo)
-        poligonoParabolico << QPointF(mapearX(x0), pixelOrigenY);
-
-        // 2. Generamos puntos intermedios sobre la parábola aproximada para que se vea curva suave
-        // (Aunque tengamos solo 4 intervalos, el techo de la parábola se dibujará curvo)
-        int resolucionCurva = 20;
-        double pasoInterpolacion = (x2 - x0) / resolucionCurva;
-
-        for(int k = 0; k <= resolucionCurva; ++k) {
-            double curX = x0 + k * pasoInterpolacion;
-            double curY = A * curX * curX + B * curX + C; // Evaluación en la parábola de Simpson
-            poligonoParabolico << QPointF(mapearX(curX), mapearY(curY));
+        if (std::isnan(y0) || std::isinf(y0) || std::abs(y0) > UMBRAL_ASINTOTA ||
+            std::isnan(y1) || std::isinf(y1) || std::abs(y1) > UMBRAL_ASINTOTA ||
+            std::isnan(y2) || std::isinf(y2) || std::abs(y2) > UMBRAL_ASINTOTA)
+        {
+            continue; // Saltamos el trapecio que roza el abismo/infinito de la asíntota
         }
 
-        // 3. Bajamos a la base del eje Y=0 (extremo derecho)
-        poligonoParabolico << QPointF(mapearX(x2), pixelOrigenY);
+        // Interpolación de Lagrange simplificada directamente en el cálculo
+        double den = (x0 - x1) * (x0 - x2) * (x1 - x2);
+        double A = (x2 * (y1 - y0) + x1 * (y0 - y2) + x0 * (y2 - y1)) / den;
+        double B = (x2*x2 * (y0 - y1) + x1*x1 * (y2 - y0) + x0*x0 * (y1 - y2)) / den;
+        double C = (x1 * x2 * (x1 - x2) * y0 + x2 * x0 * (x2 - x0) * y1 + x0 * x1 * (x0 - x1) * y2) / den;
 
-        // --- Dibujar el polígono ---
-        // Alternamos el color para que el usuario diferencie el Intervalo 1-2 del Intervalo 3-4
-        pintor.setBrush(QBrush((i / 2) % 2 == 0 ? colorBloqueA : colorBloqueB));
-        pintor.setPen(QPen(Qt::darkGray, 1, Qt::SolidLine)); // Línea que delimita el polígono
+        // Construcción del Polígono
+        QPolygonF poligono;
+        poligono << QPointF(mapearX(x0), pixelOrigenY);
 
-        pintor.drawPolygon(poligonoParabolico);
+        int res = 15; // Resolución suficiente para una curva fluida
+        for (int k = 0; k <= res; ++k) {
+            double cx = x0 + k * ((x2 - x0) / res);
+            poligono << QPointF(mapearX(cx), mapearY(A*cx*cx + B*cx + C));
+        }
+        poligono << QPointF(mapearX(x2), pixelOrigenY);
+
+        pintor.setBrush(colores[(i / 2) % 2]); // Alterna color por par de intervalos
+        pintor.drawPolygon(poligono);
     }
-    area = (h / 3) * suma;
-
     pintor.end();
 
-    // CORRECCIÓN CRÍTICA 3: Sincronizar simultáneamente el buffer integral y la visualización de la UI
+    // --- 3. ACTUALIZACIÓN DE INTERFAZ ---
     m_pixmapIntegral = miPixmap;
     ui->lblGraf->setPixmap(m_pixmapIntegral);
-
-    // Formateo de cadena más eficiente con sintaxis moderna de Qt
     ui->lblIntegral->setText(QString("Área = %1 Uds.").arg(QString::number(area, 'f', 6)));
-
 }
 
 void MainWindow::calculaSimpson38(){
