@@ -40,18 +40,20 @@ public:
     QWidget *centralwidget;
     QHBoxLayout *horizontalLayout_5;
     QHBoxLayout *horizontalLayout_4;
-    QVBoxLayout *verticalLayout_4;
+    QVBoxLayout *verticalLayout_5;
     QVBoxLayout *verticalLayout_3;
     QLabel *label_2;
     QDoubleSpinBox *dsbInferior;
     QLabel *label_3;
     QDoubleSpinBox *dsbSuperior;
-    QLabel *label_4;
-    QDoubleSpinBox *dsbPaso;
     QLabel *label;
     QLineEdit *etFuncion;
     QSpacerItem *verticalSpacer_2;
+    QVBoxLayout *verticalLayout_4;
     QComboBox *spIntegral;
+    QLabel *label_4;
+    QDoubleSpinBox *dsbIntervalos;
+    QSpacerItem *verticalSpacer_4;
     QLabel *lblIntegral;
     QSpacerItem *verticalSpacer;
     QVBoxLayout *verticalLayout;
@@ -211,8 +213,8 @@ public:
         horizontalLayout_5->setObjectName("horizontalLayout_5");
         horizontalLayout_4 = new QHBoxLayout();
         horizontalLayout_4->setObjectName("horizontalLayout_4");
-        verticalLayout_4 = new QVBoxLayout();
-        verticalLayout_4->setObjectName("verticalLayout_4");
+        verticalLayout_5 = new QVBoxLayout();
+        verticalLayout_5->setObjectName("verticalLayout_5");
         verticalLayout_3 = new QVBoxLayout();
         verticalLayout_3->setObjectName("verticalLayout_3");
         label_2 = new QLabel(centralwidget);
@@ -239,18 +241,6 @@ public:
 
         verticalLayout_3->addWidget(dsbSuperior);
 
-        label_4 = new QLabel(centralwidget);
-        label_4->setObjectName("label_4");
-
-        verticalLayout_3->addWidget(label_4);
-
-        dsbPaso = new QDoubleSpinBox(centralwidget);
-        dsbPaso->setObjectName("dsbPaso");
-        dsbPaso->setStyleSheet(QString::fromUtf8(" 	background-color: #FCECC0;\n"
-"    color: #F63D03;"));
-
-        verticalLayout_3->addWidget(dsbPaso);
-
         label = new QLabel(centralwidget);
         label->setObjectName("label");
 
@@ -267,17 +257,38 @@ public:
         verticalLayout_3->addWidget(etFuncion);
 
 
-        verticalLayout_4->addLayout(verticalLayout_3);
+        verticalLayout_5->addLayout(verticalLayout_3);
 
-        verticalSpacer_2 = new QSpacerItem(192, 13, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+        verticalSpacer_2 = new QSpacerItem(192, 18, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
 
-        verticalLayout_4->addItem(verticalSpacer_2);
+        verticalLayout_5->addItem(verticalSpacer_2);
 
+        verticalLayout_4 = new QVBoxLayout();
+        verticalLayout_4->setObjectName("verticalLayout_4");
         spIntegral = new QComboBox(centralwidget);
         spIntegral->setObjectName("spIntegral");
         spIntegral->setStyleSheet(QString::fromUtf8(""));
 
         verticalLayout_4->addWidget(spIntegral);
+
+        label_4 = new QLabel(centralwidget);
+        label_4->setObjectName("label_4");
+
+        verticalLayout_4->addWidget(label_4);
+
+        dsbIntervalos = new QDoubleSpinBox(centralwidget);
+        dsbIntervalos->setObjectName("dsbIntervalos");
+        dsbIntervalos->setStyleSheet(QString::fromUtf8(" 	background-color: #FCECC0;\n"
+"    color: #F63D03;"));
+
+        verticalLayout_4->addWidget(dsbIntervalos);
+
+
+        verticalLayout_5->addLayout(verticalLayout_4);
+
+        verticalSpacer_4 = new QSpacerItem(20, 18, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+
+        verticalLayout_5->addItem(verticalSpacer_4);
 
         lblIntegral = new QLabel(centralwidget);
         lblIntegral->setObjectName("lblIntegral");
@@ -289,11 +300,11 @@ public:
         lblIntegral->setFrameShape(QFrame::Shape::WinPanel);
         lblIntegral->setFrameShadow(QFrame::Shadow::Plain);
 
-        verticalLayout_4->addWidget(lblIntegral);
+        verticalLayout_5->addWidget(lblIntegral);
 
-        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
+        verticalSpacer = new QSpacerItem(20, 18, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
 
-        verticalLayout_4->addItem(verticalSpacer);
+        verticalLayout_5->addItem(verticalSpacer);
 
         verticalLayout = new QVBoxLayout();
         verticalLayout->setObjectName("verticalLayout");
@@ -364,25 +375,29 @@ public:
         verticalLayout->addLayout(horizontalLayout_3);
 
 
-        verticalLayout_4->addLayout(verticalLayout);
+        verticalLayout_5->addLayout(verticalLayout);
 
         verticalSpacer_3 = new QSpacerItem(192, 13, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Expanding);
 
-        verticalLayout_4->addItem(verticalSpacer_3);
+        verticalLayout_5->addItem(verticalSpacer_3);
 
         btnGraf = new QPushButton(centralwidget);
         btnGraf->setObjectName("btnGraf");
         btnGraf->setMinimumSize(QSize(0, 35));
 
-        verticalLayout_4->addWidget(btnGraf);
+        verticalLayout_5->addWidget(btnGraf);
 
-        verticalLayout_4->setStretch(0, 1);
-        verticalLayout_4->setStretch(1, 1);
-        verticalLayout_4->setStretch(2, 1);
-        verticalLayout_4->setStretch(4, 10);
-        verticalLayout_4->setStretch(7, 1);
+        verticalLayout_5->setStretch(0, 1);
+        verticalLayout_5->setStretch(1, 1);
+        verticalLayout_5->setStretch(2, 1);
+        verticalLayout_5->setStretch(3, 1);
+        verticalLayout_5->setStretch(4, 1);
+        verticalLayout_5->setStretch(5, 10);
+        verticalLayout_5->setStretch(6, 1);
+        verticalLayout_5->setStretch(7, 1);
+        verticalLayout_5->setStretch(8, 1);
 
-        horizontalLayout_4->addLayout(verticalLayout_4);
+        horizontalLayout_4->addLayout(verticalLayout_5);
 
         verticalLayout_2 = new QVBoxLayout();
         verticalLayout_2->setObjectName("verticalLayout_2");
@@ -411,6 +426,7 @@ public:
 
         horizontalLayout_4->addLayout(verticalLayout_2);
 
+        horizontalLayout_4->setStretch(0, 1);
         horizontalLayout_4->setStretch(1, 10);
 
         horizontalLayout_5->addLayout(horizontalLayout_4);
@@ -455,8 +471,8 @@ public:
         actionSalir->setText(QCoreApplication::translate("MainWindow", "Salir", nullptr));
         label_2->setText(QCoreApplication::translate("MainWindow", "L\303\255mite Inferior:", nullptr));
         label_3->setText(QCoreApplication::translate("MainWindow", "L\303\255mite Superior", nullptr));
-        label_4->setText(QCoreApplication::translate("MainWindow", "Tama\303\261o de pase:", nullptr));
         label->setText(QCoreApplication::translate("MainWindow", "Funcion:", nullptr));
+        label_4->setText(QCoreApplication::translate("MainWindow", "Numero Intervalos.", nullptr));
         lblIntegral->setText(QString());
         chkEjes->setText(QCoreApplication::translate("MainWindow", "Pintar Ejes    ", nullptr));
         chkEscala->setText(QCoreApplication::translate("MainWindow", "Pintar Escala", nullptr));

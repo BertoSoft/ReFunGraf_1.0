@@ -44,6 +44,8 @@ private slots:
 
     void on_actionAbrir_triggered();
 
+    void on_spIntegral_activated(int index);
+
 private:
     void initUi();
     void initBarraEstado();
@@ -59,7 +61,7 @@ private:
     void nuevaFuncion();
     void abrirFuncion();
     void guardarFuncion();
-    QList<QPointF> procesaFuncion(double paso);
+    QList<QPointF> procesaFuncion(double intervalos);
     QPixmap dibujaEjes(QList<QPointF> datos);
     void dibujaFuncion(QList<QPointF> datos, QPixmap lienzo);
     void dibujaCoordenadas(double x, double y);
@@ -83,11 +85,12 @@ private:
     // =========================================================================
     // VARIABLES MIEMBRO DE CLASE (Persistencia para el rastreo del ratón)
     // =========================================================================
-    QList<QPointF>  m_datos; // Guarda el último vector de puntos graficado
-    double          m_xMin = 0.0;            // Límite mínimo real en X
-    double          m_xMax = 0.0;            // Límite máximo real en X
-    double          m_yMin = 0.0;            // Valor mínimo real en Y (calculado)
-    double          m_yMax = 0.0;            // Valor máximo real en Y (calculado
+    QList<QPointF>  m_datos;                 // Guarda el último vector de puntos graficado
+    int             m_intervalos =  10000;   // Numero de divisiones del intervalo
+    double          m_xMin =        0.0;     // Límite mínimo real en X
+    double          m_xMax =        0.0;     // Límite máximo real en X
+    double          m_yMin =        0.0;     // Valor mínimo real en Y (calculado)
+    double          m_yMax =        0.0;     // Valor máximo real en Y (calculado
     QPixmap         m_pixmap;                // PIxmap sin integral
     QPixmap         m_pixmapIntegral;        // Pixmap con integral
 

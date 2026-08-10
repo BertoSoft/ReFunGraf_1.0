@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->etFuncion->installEventFilter(this);
     ui->dsbInferior->installEventFilter(this);
     ui->dsbSuperior->installEventFilter(this);
-    ui->dsbPaso->installEventFilter(this);
+    ui->dsbIntervalos->installEventFilter(this);
 
 }
 
@@ -63,10 +63,6 @@ void MainWindow::initSp(){
     ui->spIntegral->addItem("Método Simpson");
     ui->spIntegral->addItem("Método Simpson 3/8");
     ui->spIntegral->addItem("Método Boole");
-
-    connect(ui->spIntegral, &QComboBox::currentIndexChanged, this, [this](int indice){
-        this->dibujaIntegral(indice);
-    });
 }
 
 void MainWindow::initBarraEstado(){
@@ -128,27 +124,27 @@ void MainWindow::refrescaReloj(){
 void MainWindow::initDsb(){
     ui->dsbInferior->setLocale(QLocale::C);
     ui->dsbSuperior->setLocale(QLocale::C);
-    ui->dsbPaso->setLocale(QLocale::C);
+    ui->dsbIntervalos->setLocale(QLocale::C);
 
     ui->dsbInferior->setRange(-100, 100);
     ui->dsbSuperior->setRange(-100, 100);
-    ui->dsbPaso->setRange(0, 1);
+    ui->dsbIntervalos->setRange(0, 10000);
 
     ui->dsbInferior->setDecimals(2);
     ui->dsbSuperior->setDecimals(2);
-    ui->dsbPaso->setDecimals(5);
+    ui->dsbIntervalos->setDecimals(0);
 
     ui->dsbInferior->setSingleStep(10);
     ui->dsbSuperior->setSingleStep(10);
-    ui->dsbPaso->setSingleStep(0.001);
+    ui->dsbIntervalos->setSingleStep(100);
 
 
     ui->dsbInferior->setValue(0.00);
     ui->dsbSuperior->setValue(0.01);
-    ui->dsbPaso->setValue(0.00);
+    ui->dsbIntervalos->setValue(10000);
 
     // Hacemos que el paso sea como minimo 0.0001 y que limite supeior siempre sea mayor
-    ui->dsbPaso->setMinimum(0.00001);
+    ui->dsbIntervalos->setMinimum(0);
     connect(ui->dsbInferior, &QDoubleSpinBox::valueChanged, this, [this](double val){
         ui->dsbSuperior->setMinimum(val + 0.01);
     });
@@ -158,37 +154,36 @@ void MainWindow::initDsb(){
 }
 
 void MainWindow::activaControles(){
-    ui->etFuncion->setEnabled(true);
     ui->dsbInferior->setEnabled(true);
     ui->dsbSuperior->setEnabled(true);
-    ui->dsbPaso->setEnabled(true);
+    ui->etFuncion->setEnabled(true);
+    ui->spIntegral->setEnabled(true);
     ui->btnGraf->setEnabled(true);
     ui->chkEjes->setEnabled(true);
     ui->chkEscala->setEnabled(true);
     ui->chkRejilla->setEnabled(true);
     ui->lblGraf->setEnabled(true);
-    ui->spIntegral->setEnabled(true);
 }
 
 void MainWindow::desactivaControles(){
-    ui->etFuncion->setEnabled(false);
     ui->dsbInferior->setEnabled(false);
     ui->dsbSuperior->setEnabled(false);
-    ui->dsbPaso->setEnabled(false);
+    ui->etFuncion->setEnabled(false);
+    ui->spIntegral->setEnabled(false);
+    ui->dsbIntervalos->setEnabled(false);
     ui->btnGraf->setEnabled(false);
     ui->chkEjes->setEnabled(false);
     ui->chkEscala->setEnabled(false);
     ui->chkRejilla->setEnabled(false);
     ui->lblGraf->setEnabled(false);
-    ui->spIntegral->setEnabled(false);
 }
 
 void MainWindow::limpiaControles(){
-    ui->etFuncion->setText("");
     ui->dsbInferior->setValue(0.0);
     ui->dsbSuperior->setValue(0.0);
-    ui->dsbPaso->setValue(0.0);
+    ui->etFuncion->setText("");
     ui->spIntegral->setCurrentIndex(0);
+    ui->dsbIntervalos->setValue(10000);
 }
 
 //
@@ -207,10 +202,13 @@ void MainWindow::on_btnGraf_clicked(){
     //Borramos la lblGraf
     ui->lblGraf->clear();
 
-    m_datos = procesaFuncion(ui->dsbPaso->value());
-    if(!m_datos.isEmpty()){
-        QPixmap miPixMap = dibujaEjes(m_datos);
-        dibujaFuncion(m_datos, miPixMap);
+    QList<QPointF> datos = procesaFuncion(m_intervalos);
+
+    if(!datos.isEmpty()){
+        QPixmap miPixMap = dibujaEjes(datos);
+        dibujaFuncion(datos, miPixMap);
+
+        str = QString("Representando la función: %1 ").arg(ui->etFuncion->text());
 
         //AL FINAL: Si hay un método integral seleccionado, se calcula e itera.
         // Como dibujaFuncion ya guardó m_pixmap de forma segura, calculaTrapecios()
@@ -218,30 +216,31 @@ void MainWindow::on_btnGraf_clicked(){
         int indiceMetodo = ui->spIntegral->currentIndex();
         if (indiceMetodo > 0) {
             dibujaIntegral(indiceMetodo);
+            str.append(QString(
+                           ", con el método de integración %1"
+                           ).arg(ui->spIntegral->currentText()));
         }
 
         ui->lblGraf->setFocus();
-        str = "Representando la función: ";
-        str.append(ui->etFuncion->text());
         lblTexto->setText(str);
         ui->actionGuardar->setEnabled(true);
     }
 }
 
 void MainWindow::on_chkEjes_clicked(){
-    QList<QPointF> datos =procesaFuncion(ui->dsbPaso->value());
+    QList<QPointF> datos =procesaFuncion(m_intervalos);
     QPixmap miPixmap = dibujaEjes(datos);
     dibujaFuncion(datos, miPixmap);
 }
 
 void MainWindow::on_chkEscala_clicked(){
-    QList<QPointF> datos =procesaFuncion(ui->dsbPaso->value());
+    QList<QPointF> datos =procesaFuncion(m_intervalos);
     QPixmap miPixmap = dibujaEjes(datos);
     dibujaFuncion(datos, miPixmap);
 }
 
 void MainWindow::on_chkRejilla_clicked(){
-    QList<QPointF> datos =procesaFuncion(ui->dsbPaso->value());
+    QList<QPointF> datos =procesaFuncion(m_intervalos);
     QPixmap miPixmap = dibujaEjes(datos);
     dibujaFuncion(datos, miPixmap);
 }
@@ -254,6 +253,28 @@ void MainWindow::on_actionAbrir_triggered(){
     abrirFuncion();
 }
 
+void MainWindow::on_spIntegral_activated(int index){
+    switch (index) {
+    case 0:
+        ui->dsbIntervalos->setEnabled(false);
+        dibujaFuncion(m_datos, dibujaEjes(m_datos));
+        break;
+    case 1:
+        calculaTrapecios();
+        break;
+    case 2:
+
+        break;
+    case 3:
+
+        break;
+    case 4:
+
+        break;
+    default:
+        break;
+    }
+}
 
 //
 // Funciones Protegidas
@@ -261,7 +282,7 @@ void MainWindow::on_actionAbrir_triggered(){
 bool MainWindow::eventFilter(QObject *obj, QEvent *ev){
 
     // 1. PROTECCIÓN PRINCIPAL CONTRA PUNTEROS NULOS (Clang al 100%)
-    if (!ui || !ui->dsbInferior || !ui->dsbSuperior || !ui->dsbPaso || !ui->etFuncion || !lblTexto) {
+    if (!ui || !ui->dsbInferior || !ui->dsbSuperior || !ui->dsbIntervalos || !ui->etFuncion || !lblTexto) {
         return QMainWindow::eventFilter(obj, ev);
     }
 
@@ -293,15 +314,11 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev){
                 return true; // CORREGIDO: Evita propagación errática
             }
             if (obj == ui->dsbSuperior) {
-                double paso = (ui->dsbSuperior->value() - ui->dsbInferior->value()) / 10000;
-                ui->dsbPaso->setValue( paso);
-                ui->dsbPaso->setMinimum(paso);
-                ui->dsbPaso->setFocus();
-                return true; // CORREGIDO: Evita propagación errática
-            }
-            if (obj == ui->dsbPaso) {
                 ui->etFuncion->setFocus();
                 return true; // CORREGIDO: Evita propagación errática
+            }
+            if (obj == ui->dsbIntervalos) {
+                dibujaIntegral(ui->spIntegral->currentIndex());
             }
         }
     }
@@ -318,9 +335,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev){
             QTimer::singleShot(0, ui->dsbSuperior, [this]() { ui->dsbSuperior->selectAll(); });
             lblTexto->setText("Introduce el límite superior de la función...");
         }
-        else if (obj == ui->dsbPaso) {
-            QTimer::singleShot(0, ui->dsbPaso, [this]() { ui->dsbPaso->selectAll(); });
-            lblTexto->setText("Introduce el intervalo de paso de la función...");
+        else if (obj == ui->dsbIntervalos) {
+            QTimer::singleShot(0, ui->dsbIntervalos, [this]() { ui->dsbIntervalos->selectAll(); });
+            lblTexto->setText("Introduce el número de intervalos de paso de la función...");
         }
         else if (obj == ui->etFuncion) {
             QTimer::singleShot(0, ui->etFuncion, [this]() { ui->etFuncion->selectAll(); });
@@ -421,7 +438,6 @@ void MainWindow::abrirFuncion(){
     QString strFuncion;
     double limiteInferior = 0.0;
     double limiteSuperior = 0.0;
-    double paso = 0.0;
     int lineaMetadatos = 0;
 
     while(entrada.readLineInto(&linea)){
@@ -438,7 +454,6 @@ void MainWindow::abrirFuncion(){
                 if(lineaMetadatos == 1) strFuncion = contenido;
                 else if(lineaMetadatos == 2) limiteInferior = contenido.toDouble();
                 else if(lineaMetadatos == 3) limiteSuperior = contenido.toDouble();
-                else if(lineaMetadatos == 4) paso = contenido.toDouble();
             }
             continue;
         }
@@ -467,11 +482,10 @@ void MainWindow::abrirFuncion(){
         return;
     }
 
-    if(lineaMetadatos == 4){
+    if(lineaMetadatos == 3){
         ui->etFuncion->setText(strFuncion);
         ui->dsbInferior->setValue(limiteInferior);
         ui->dsbSuperior->setValue(limiteSuperior);
-        ui->dsbPaso->setValue(paso);
 
         QString str = "Representando la función: ";
         str.append(ui->etFuncion->text());
@@ -483,10 +497,6 @@ void MainWindow::abrirFuncion(){
 }
 
 void MainWindow::guardarFuncion(){
-    QList<QPointF> datos = procesaFuncion(ui->dsbPaso->value());
-    if(datos.isEmpty()){
-        return;
-    }
 
     QString nombreSugerido = ui->etFuncion->text().trimmed();
     nombreSugerido.replace(QRegularExpression("[\\\\/:*?\"<>|()]"), "_");
@@ -523,14 +533,13 @@ void MainWindow::guardarFuncion(){
     salida << "#" + ui->etFuncion->text().trimmed() + "\n";
     salida << "# " << ui->dsbInferior->value() << "\n";
     salida << "# " << ui->dsbSuperior->value() << "\n";
-    salida << "# " << ui->dsbPaso->value() << "\n";
 
     // 7. Escribir la línea de cabecera informativa
-    salida << "# [PUNTOS:" << datos.size() << "]\n";
+    salida << "# [PUNTOS:" << m_datos.size() << "]\n";
 
     // 8. Escribir el vector de puntos (X,Y) con alta precisión decimal
     salida << qSetRealNumberPrecision(10);
-    for (const QPointF &punto : datos) {
+    for (const QPointF &punto : m_datos) {
         salida << punto.x() << "," << punto.y() << "\n";
     }
 
@@ -606,8 +615,9 @@ double MainWindow::minFuncion(QList<QPointF> datos){
     return dMin;
 }
 
-QList<QPointF> MainWindow::procesaFuncion(double paso){
+QList<QPointF> MainWindow::procesaFuncion(double intervalos){
     QList<QPointF> datos;
+    double paso = (ui->dsbSuperior->value() - ui->dsbInferior->value()) / intervalos;
 
     if(ui->etFuncion->text().trimmed().isEmpty()){
         QMessageBox::critical(
@@ -790,6 +800,9 @@ void MainWindow::dibujaFuncion(QList<QPointF> datos, QPixmap miPixmap){
     QPainter painter(&miPixmap);
     painter.setRenderHint(QPainter::Antialiasing); // Activa suavizado de bordes
 
+    // Datos
+    m_datos = datos;
+
     // Maximos y minimos
     m_xMin = datos.first().x();
     m_xMax = datos.last().x();
@@ -831,24 +844,11 @@ void MainWindow::dibujaCoordenadas(double pixelX, double pixelY){
     int ancho = ui->lblGraf->width();
     int alto = ui->lblGraf->height();
 
-    // NOTA DE PROTECCIÓN: recalculamos dinámicamente yMin e yMax de forma exacta a dibujaEjes()
-    double yMax = maxFuncion(m_datos);
-    double yMin = minFuncion(m_datos);
-
-    if (qFuzzyCompare(yMin, yMax)) {
-        yMax++;
-        yMin--;
-    }
-
     double rangoX = (qFuzzyCompare(m_xMax, m_xMin)) ? 1.0 : (m_xMax - m_xMin);
     double rangoY = (qFuzzyCompare(m_yMax, m_yMin)) ? 1.0 : (m_yMax - m_yMin);
 
     //Asegurarse de que los pixeles esten entre los limites
     if(pixelX >= 0 && pixelX <= ancho && pixelY >= 0 && pixelY <= alto){
-
-        // CONVERSIÓN INVERSA EXACTA: Mapeo milimétrico de píxeles a unidades matemáticas
-        double valorX = m_xMin + (pixelX / ancho) * rangoX;
-        double valorY = yMax - (pixelY / alto) * rangoY; // CORREGIDO: Origen superior izquierdo de Qt calibrado
 
         // Tolerancia de captura en píxeles (puedes aumentarla a 5 o 6 si usas pantallas High-DPI)
         const double tolerancia = 5.0;
@@ -906,6 +906,7 @@ void MainWindow::dibujaIntegral(int indice){
             break;
         case 1:
             calculaTrapecios();
+            ui->dsbIntervalos->setEnabled(true);
             break;
         case 2:
             calculaSimpson();
@@ -934,13 +935,13 @@ void MainWindow::calculaTrapecios(){
         return ((m_yMax - y) / (m_yMax - m_yMin)) * alto;
     };
 
-    QPixmap miPixmap = m_pixmapIntegral;
+    QPixmap miPixmap = m_pixmap;
     QPainter pintor(&miPixmap);
     pintor.setRenderHint(QPainter::Antialiasing);
 
     // Configurar colores del sombreado (Verde semi-transparente)
-    pintor.setBrush(QColor(46, 125, 50, 60));
-    pintor.setPen(QPen(QColor(46, 125, 50, 150), 1, Qt::SolidLine));
+    pintor.setBrush(QBrush(QColor(255, 255, 0, 150)));
+    pintor.setPen(QPen(QColor(255, 255, 0, 150), 1, Qt::SolidLine));
 
     // CORRECCIÓN 3: Limitar de forma segura la base del trapecio (el eje Y = 0) dentro del recuadro visual
     int pixelOrigenY = mapearY(0.0);
@@ -948,17 +949,7 @@ void MainWindow::calculaTrapecios(){
     if (pixelOrigenY > alto) pixelOrigenY = alto;
 
 
-
-
-
-    double paso = 0.5;
-    QList<QPointF> datos = procesaFuncion(paso);
-
-
-
-
-
-
+    QList<QPointF> datos = procesaFuncion(ui->dsbIntervalos->value());
 
     for(int i =0; i < datos.size() -1; i++){
         double x0 = datos[i].x();
