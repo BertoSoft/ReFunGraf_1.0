@@ -39,16 +39,21 @@ QDialog {
 	/* QLAbels*/
 	QLabel{
 		 background-color: #FCECC0;
-        color: #000000;
+        color: #673AB7;
 	}
 
-QComboBox {
-    background-color: #FCECC0; /* Tu color de fondo (ejemplo: morado de tu app) */
-    color: #F63D03;              /* Color del texto */
-    border: 1px solid #F63D03; /* Obligatorio: define un borde para activar el fondo */
-    border-radius: 4px;
-    padding: 4px 10px;
-}
+	QComboBox {
+    	background-color: #FCECC0; /* Tu color de fondo (ejemplo: morado de tu app) */
+    	color: #F63D03;              /* Color del texto */
+   		border: 1px solid #F63D03; /* Obligatorio: define un borde para activar el fondo */
+    	border-radius: 4px;
+    	padding: 4px 10px;
+	}
+
+	QComboBox:hover{
+		background-color:#673AB7;
+		color:#FFFFFF;
+	}
 
 QComboBox QAbstractItemView {
        background-color: #FCECC0;  /* Mismo color de fondo para la lista */
@@ -61,7 +66,7 @@ QComboBox QAbstractItemView {
     /* Barra de estado con fondo crema unificado */
     QStatusBar {
         background-color: #FCECC0;
-        color: #673AB7;
+        color: #000000;
     }
 	
 	/* QToolBar*/
@@ -93,6 +98,12 @@ QToolBar QToolButton:pressed, QToolBar QToolButton:checked {
     padding-top: 5px;  /* Desplaza ligeramente el texto/icono hacia abajo */
     padding-left: 5px; /* Desplaza ligeramente hacia la derecha para simular presión */
 }
+
+
+	QRadioButton{
+		background-color:#FCECC0;
+		color:#673AB7;
+	}
 
     /* Estilo genérico para botones que añadas en el futuro */
     QPushButton {
@@ -306,9 +317,7 @@ QToolBar QToolButton:pressed, QToolBar QToolButton:checked {
                <enum>Qt::LayoutDirection::RightToLeft</enum>
               </property>
               <property name="styleSheet">
-               <string notr="true">background-color: #FCECC0;
-color:#000000;
-</string>
+               <string notr="true"/>
               </property>
               <property name="text">
                <string>Pintar Ejes    </string>
@@ -344,8 +353,7 @@ color:#000000;
                <enum>Qt::LayoutDirection::RightToLeft</enum>
               </property>
               <property name="styleSheet">
-               <string notr="true">background-color: #FCECC0;
-color:#000000;
+               <string notr="true">
 </string>
               </property>
               <property name="text">
@@ -382,9 +390,7 @@ color:#000000;
                <enum>Qt::LayoutDirection::RightToLeft</enum>
               </property>
               <property name="styleSheet">
-               <string notr="true">background-color: #FCECC0;
-color:#000000;
-</string>
+               <string notr="true"/>
               </property>
               <property name="text">
                <string>Pintar Rejilla</string>
@@ -424,6 +430,9 @@ color:#000000;
            <font>
             <pointsize>14</pointsize>
            </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color:#673AB7</string>
           </property>
           <property name="text">
            <string>Representación gráfica de la función </string>

@@ -79,7 +79,7 @@ void MainWindow::initBarraEstado(){
     const QFrame::Shape     formaPanel      = QFrame::WinPanel;
     const QFrame::Shadow    sombraHundida   = QFrame::Sunken;
     QString estiloEtiquetas = "QLabel { "
-                              "color: #673AB7; "
+                              "color: #000000; "
                               "font-weight: bold; "
                               "padding: 2px 5px; "
                               "}";
@@ -233,18 +233,21 @@ void MainWindow::on_chkEjes_clicked(){
     QList<QPointF> datos =procesaFuncion(m_intervalos);
     QPixmap miPixmap = dibujaEjes(datos);
     dibujaFuncion(datos, miPixmap);
+    dibujaIntegral(ui->spIntegral->currentIndex());
 }
 
 void MainWindow::on_chkEscala_clicked(){
     QList<QPointF> datos =procesaFuncion(m_intervalos);
     QPixmap miPixmap = dibujaEjes(datos);
     dibujaFuncion(datos, miPixmap);
+    dibujaIntegral(ui->spIntegral->currentIndex());
 }
 
 void MainWindow::on_chkRejilla_clicked(){
     QList<QPointF> datos =procesaFuncion(m_intervalos);
     QPixmap miPixmap = dibujaEjes(datos);
     dibujaFuncion(datos, miPixmap);
+    dibujaIntegral(ui->spIntegral->currentIndex());
 }
 
 void MainWindow::on_actionGuardar_triggered(){
@@ -944,8 +947,9 @@ void MainWindow::calculaTrapecios(){
     pintor.setRenderHint(QPainter::Antialiasing);
 
     // Configurar colores del sombreado (Verde semi-transparente)
-    pintor.setBrush(QBrush(QColor(255, 255, 0, 150)));
-    pintor.setPen(QPen(QColor(255, 255, 0, 150), 1, Qt::SolidLine));
+    pintor.setPen(QPen(QColor(127, 127, 0, 125), 1, Qt::SolidLine));
+
+    QColor colores[2] = { QColor(127, 127, 0, 125), QColor(0, 127, 127, 125) }; // Azul y Verde alternos
 
     // CORRECCIÓN 3: Limitar de forma segura la base del trapecio (el eje Y = 0) dentro del recuadro visual
     int pixelOrigenY = mapearY(0.0);
@@ -988,13 +992,15 @@ void MainWindow::calculaTrapecios(){
         if(pixelY0 < 0.0) pixelY0 = 0.0; if(pixelY0 > alto) pixelY0 = alto;
         if(pixelY1 < 0.0) pixelY1 = 0.0; if(pixelY1 > alto) pixelY1 = alto;
 
+        pintor.setBrush(colores[(i / 2) % 2]); // Alterna color por par de intervalos
+
         QPolygonF trapecioVisual;
         trapecioVisual << QPointF(pixelX0, pixelOrigenY)   // Esquina inferior izquierda (en el eje)
                        << QPointF(pixelX0, pixelY0)   // Esquina superior izquierda (en la curva)
                        << QPointF(pixelX1, pixelY1) // Esquina superior derecha (en la curva)
                        << QPointF(pixelX1, pixelOrigenY); // Esquina inferior derecha (en el eje)
 
-        pintor.setPen(Qt::NoPen); // Quitar borde al trapecio para que el relleno sea homogéneo
+        //pintor.setPen(Qt::NoPen); // Quitar borde al trapecio para que el relleno sea homogéneo
         pintor.drawPolygon(trapecioVisual); 
     }
 
@@ -1029,7 +1035,11 @@ void MainWindow::calculaSimpson(){
 
     // --- 1. CÁLCULO NUMÉRICO SIMPLIFICADO ---
     double h = (datos.last().x() - datos.first().x()) / intervalos;
-    double suma = datos.first().y() + datos.last().y();
+
+    // Asegurar que los extremos no sean NaN antes de sumar
+    double y_inicio = std::isnan(datos.first().y()) ? 0.0 : datos.first().y();
+    double y_final  = std::isnan(datos.last().y()) ? 0.0 : datos.last().y();
+    double suma = y_inicio + y_final;
 
     for (int i = 1; i < intervalos; ++i) {
 
@@ -1039,10 +1049,11 @@ void MainWindow::calculaSimpson(){
 
         if (std::isnan(datos[i].y()) || std::isinf(datos[i].y()) || std::abs(datos[i].y()) > UMBRAL_ASINTOTA)
         {
-            continue; // Saltamos el trapecio que roza el abismo/infinito de la asíntota
+            suma += 0; // Saltamos el trapecio que roza el abismo/infinito de la asíntota
         }
-
-        suma += (i % 2 == 0 ? 2.0 : 4.0) * datos[i].y();
+        else{
+            suma += (i % 2 == 0 ? 2.0 : 4.0) * datos[i].y();
+        }
     }
     double area = (h / 3.0) * suma;
 
